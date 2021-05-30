@@ -24,7 +24,6 @@ linters:
     - cyclop
     - depguard
     - dogsled
-    - dupl
     - durationcheck
     - errorlint
     - exhaustive
@@ -32,7 +31,6 @@ linters:
     - exportloopref
     - forbidigo
     - forcetypeassert
-    - funlen
     - gci
     - gochecknoglobals
     - gochecknoinits
@@ -54,7 +52,6 @@ linters:
     - gosec
     - ifshort
     - importas
-    - lll
     - makezero
     - misspell
     - nakedret
