@@ -6,14 +6,14 @@
 set -eu
 set -o pipefail
 
-LC_PROTO_VESION="v0.1.0"
+LC_PROTO_VESION="v0.1.1"
 
 LC_PROTO_URL="https://github.com/limpidchart/lc-proto.git"
 PROTOS_SRC_DIR="render"
 PROTOS_TMP_DST_DIR="./proto-tmp"
 PROTOS_DST_DIR="./proto"
 NOTE_FILE="README.md"
-GENERATED_DST_DIR="./pkg/render"
+GENERATED_DST_DIR="./internal/render"
 PROTOS_API_VERSION="v0"
 
 if ! [ -x "$(command -v protoc)" ]; then

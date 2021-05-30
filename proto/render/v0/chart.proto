@@ -5,7 +5,6 @@ package render;
 option go_package = "github.com/limpidchart/lc-proto/render/v0;render";
 
 import "scale.proto";
-import "view.proto";
 
 // ChartSizes represents options to configure chart sizes.
 message ChartSizes {
