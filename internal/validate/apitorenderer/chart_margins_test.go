@@ -1,4 +1,4 @@
-package validation_test
+package apitorenderer_test
 
 import (
 	"testing"
@@ -7,7 +7,7 @@ import (
 	"google.golang.org/protobuf/types/known/wrapperspb"
 
 	"github.com/limpidchart/lc-api/internal/render/github.com/limpidchart/lc-proto/render/v0"
-	"github.com/limpidchart/lc-api/internal/validation"
+	"github.com/limpidchart/lc-api/internal/validate/apitorenderer"
 )
 
 func TestValidateChartMargins(t *testing.T) {
@@ -77,7 +77,7 @@ func TestValidateChartMargins(t *testing.T) {
 				MarginRight:  &wrapperspb.Int32Value{Value: 3},
 			},
 			nil,
-			validation.ErrChartTopMarginIsTooBig,
+			apitorenderer.ErrChartTopMarginIsTooBig,
 		},
 		{
 			"too_big_bottom_margin",
@@ -88,7 +88,7 @@ func TestValidateChartMargins(t *testing.T) {
 				MarginRight:  &wrapperspb.Int32Value{Value: 3},
 			},
 			nil,
-			validation.ErrChartBottomMarginIsTooBig,
+			apitorenderer.ErrChartBottomMarginIsTooBig,
 		},
 		{
 			"too_big_left_margin",
@@ -99,7 +99,7 @@ func TestValidateChartMargins(t *testing.T) {
 				MarginRight:  &wrapperspb.Int32Value{Value: 3},
 			},
 			nil,
-			validation.ErrChartLeftMarginIsTooBig,
+			apitorenderer.ErrChartLeftMarginIsTooBig,
 		},
 		{
 			"too_big_right_margin",
@@ -110,7 +110,7 @@ func TestValidateChartMargins(t *testing.T) {
 				MarginRight:  &wrapperspb.Int32Value{Value: 200_000},
 			},
 			nil,
-			validation.ErrChartRightMarginIsTooBig,
+			apitorenderer.ErrChartRightMarginIsTooBig,
 		},
 		{
 			"too_small_top_margin",
@@ -121,7 +121,7 @@ func TestValidateChartMargins(t *testing.T) {
 				MarginRight:  &wrapperspb.Int32Value{Value: 3},
 			},
 			nil,
-			validation.ErrChartTopMarginIsTooSmall,
+			apitorenderer.ErrChartTopMarginIsTooSmall,
 		},
 		{
 			"too_small_bottom_margin",
@@ -132,7 +132,7 @@ func TestValidateChartMargins(t *testing.T) {
 				MarginRight:  &wrapperspb.Int32Value{Value: 3},
 			},
 			nil,
-			validation.ErrChartBottomMarginIsTooSmall,
+			apitorenderer.ErrChartBottomMarginIsTooSmall,
 		},
 		{
 			"too_small_left_margin",
@@ -143,7 +143,7 @@ func TestValidateChartMargins(t *testing.T) {
 				MarginRight:  &wrapperspb.Int32Value{Value: 3},
 			},
 			nil,
-			validation.ErrChartLeftMarginIsTooSmall,
+			apitorenderer.ErrChartLeftMarginIsTooSmall,
 		},
 		{
 			"too_small_right_margin",
@@ -154,13 +154,13 @@ func TestValidateChartMargins(t *testing.T) {
 				MarginRight:  &wrapperspb.Int32Value{Value: -100_000},
 			},
 			nil,
-			validation.ErrChartRightMarginIsTooSmall,
+			apitorenderer.ErrChartRightMarginIsTooSmall,
 		},
 		{
 			"no_margins",
 			nil,
 			nil,
-			validation.ErrChartMarginsAreNotSpecified,
+			apitorenderer.ErrChartMarginsAreNotSpecified,
 		},
 		{
 			"default_top_margin",
@@ -232,7 +232,7 @@ func TestValidateChartMargins(t *testing.T) {
 		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
-			actualChartMargins, actualErr := validation.ValidateChartMargins(tc.chartMargins)
+			actualChartMargins, actualErr := apitorenderer.ValidateChartMargins(tc.chartMargins)
 			if tc.expectedChartMargins != nil {
 				assert.Equal(t, tc.expectedChartMargins, actualChartMargins)
 			}

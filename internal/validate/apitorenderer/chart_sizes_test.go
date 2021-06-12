@@ -1,4 +1,4 @@
-package validation_test
+package apitorenderer_test
 
 import (
 	"testing"
@@ -7,7 +7,7 @@ import (
 	"google.golang.org/protobuf/types/known/wrapperspb"
 
 	"github.com/limpidchart/lc-api/internal/render/github.com/limpidchart/lc-proto/render/v0"
-	"github.com/limpidchart/lc-api/internal/validation"
+	"github.com/limpidchart/lc-api/internal/validate/apitorenderer"
 )
 
 func TestValidateChartSizes(t *testing.T) {
@@ -63,7 +63,7 @@ func TestValidateChartSizes(t *testing.T) {
 				Height: &wrapperspb.Int32Value{Value: 100},
 			},
 			nil,
-			validation.ErrChartSizeWidthIsTooSmall,
+			apitorenderer.ErrChartSizeWidthIsTooSmall,
 		},
 		{
 			"width_is_too_big",
@@ -72,7 +72,7 @@ func TestValidateChartSizes(t *testing.T) {
 				Height: &wrapperspb.Int32Value{Value: 100},
 			},
 			nil,
-			validation.ErrChartSizeWidthIsTooBig,
+			apitorenderer.ErrChartSizeWidthIsTooBig,
 		},
 		{
 			"height_is_too_small",
@@ -81,7 +81,7 @@ func TestValidateChartSizes(t *testing.T) {
 				Height: &wrapperspb.Int32Value{Value: -100},
 			},
 			nil,
-			validation.ErrChartSizeHeightIsTooSmall,
+			apitorenderer.ErrChartSizeHeightIsTooSmall,
 		},
 		{
 			"height_is_too_big",
@@ -90,7 +90,7 @@ func TestValidateChartSizes(t *testing.T) {
 				Height: &wrapperspb.Int32Value{Value: 10_000_000},
 			},
 			nil,
-			validation.ErrChartSizeHeightIsTooBig,
+			apitorenderer.ErrChartSizeHeightIsTooBig,
 		},
 		{
 			"no_width",
@@ -122,7 +122,7 @@ func TestValidateChartSizes(t *testing.T) {
 		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
-			actualChartSizes, actualErr := validation.ValidateChartSizes(tc.chartSizes)
+			actualChartSizes, actualErr := apitorenderer.ValidateChartSizes(tc.chartSizes)
 			if tc.expectedChartSizes != nil {
 				assert.Equal(t, tc.expectedChartSizes, actualChartSizes)
 			}
