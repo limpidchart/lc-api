@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"google.golang.org/protobuf/types/known/wrapperspb"
 
 	"github.com/limpidchart/lc-api/internal/render/github.com/limpidchart/lc-proto/render/v0"
 	"github.com/limpidchart/lc-api/internal/validation"
@@ -14,119 +15,216 @@ func TestValidateChartMargins(t *testing.T) {
 
 	//nolint: govet
 	tt := []struct {
-		name         string
-		chartMargins *render.ChartMargins
-		expectedErr  error
+		name                 string
+		chartMargins         *render.ChartMargins
+		expectedChartMargins *render.ChartMargins
+		expectedErr          error
 	}{
 		{
 			"standard_margins",
 			&render.ChartMargins{
-				MarginTop:    90,
-				MarginBottom: 50,
-				MarginLeft:   60,
-				MarginRight:  40,
+				MarginTop:    &wrapperspb.Int32Value{Value: 90},
+				MarginBottom: &wrapperspb.Int32Value{Value: 50},
+				MarginLeft:   &wrapperspb.Int32Value{Value: 60},
+				MarginRight:  &wrapperspb.Int32Value{Value: 40},
+			},
+			&render.ChartMargins{
+				MarginTop:    &wrapperspb.Int32Value{Value: 90},
+				MarginBottom: &wrapperspb.Int32Value{Value: 50},
+				MarginLeft:   &wrapperspb.Int32Value{Value: 60},
+				MarginRight:  &wrapperspb.Int32Value{Value: 40},
 			},
 			nil,
 		},
 		{
 			"big_margins",
 			&render.ChartMargins{
-				MarginTop:    100_000,
-				MarginBottom: 10_000,
-				MarginLeft:   100_000,
-				MarginRight:  10_000,
+				MarginTop:    &wrapperspb.Int32Value{Value: 100_000},
+				MarginBottom: &wrapperspb.Int32Value{Value: 10_000},
+				MarginLeft:   &wrapperspb.Int32Value{Value: 100_000},
+				MarginRight:  &wrapperspb.Int32Value{Value: 10_000},
+			},
+			&render.ChartMargins{
+				MarginTop:    &wrapperspb.Int32Value{Value: 100_000},
+				MarginBottom: &wrapperspb.Int32Value{Value: 10_000},
+				MarginLeft:   &wrapperspb.Int32Value{Value: 100_000},
+				MarginRight:  &wrapperspb.Int32Value{Value: 10_000},
 			},
 			nil,
 		},
 		{
 			"small_margins",
 			&render.ChartMargins{
-				MarginTop:    0,
-				MarginBottom: 1,
-				MarginLeft:   0,
-				MarginRight:  2,
+				MarginTop:    &wrapperspb.Int32Value{Value: 0},
+				MarginBottom: &wrapperspb.Int32Value{Value: 1},
+				MarginLeft:   &wrapperspb.Int32Value{Value: 0},
+				MarginRight:  &wrapperspb.Int32Value{Value: 2},
+			},
+			&render.ChartMargins{
+				MarginTop:    &wrapperspb.Int32Value{Value: 0},
+				MarginBottom: &wrapperspb.Int32Value{Value: 1},
+				MarginLeft:   &wrapperspb.Int32Value{Value: 0},
+				MarginRight:  &wrapperspb.Int32Value{Value: 2},
 			},
 			nil,
 		},
 		{
 			"too_big_top_margin",
 			&render.ChartMargins{
-				MarginTop:    10_000_000,
-				MarginBottom: 1,
-				MarginLeft:   2,
-				MarginRight:  3,
+				MarginTop:    &wrapperspb.Int32Value{Value: 10_000_000},
+				MarginBottom: &wrapperspb.Int32Value{Value: 1},
+				MarginLeft:   &wrapperspb.Int32Value{Value: 2},
+				MarginRight:  &wrapperspb.Int32Value{Value: 3},
 			},
-			validation.ErrChartTopMarginTooBig,
+			nil,
+			validation.ErrChartTopMarginIsTooBig,
 		},
 		{
 			"too_big_bottom_margin",
 			&render.ChartMargins{
-				MarginTop:    1,
-				MarginBottom: 1_000_000,
-				MarginLeft:   2,
-				MarginRight:  3,
+				MarginTop:    &wrapperspb.Int32Value{Value: 1},
+				MarginBottom: &wrapperspb.Int32Value{Value: 1_000_000},
+				MarginLeft:   &wrapperspb.Int32Value{Value: 2},
+				MarginRight:  &wrapperspb.Int32Value{Value: 3},
 			},
-			validation.ErrChartBottomMarginTooBig,
+			nil,
+			validation.ErrChartBottomMarginIsTooBig,
 		},
 		{
 			"too_big_left_margin",
 			&render.ChartMargins{
-				MarginTop:    1,
-				MarginBottom: 2,
-				MarginLeft:   100_001,
-				MarginRight:  3,
+				MarginTop:    &wrapperspb.Int32Value{Value: 1},
+				MarginBottom: &wrapperspb.Int32Value{Value: 2},
+				MarginLeft:   &wrapperspb.Int32Value{Value: 100_001},
+				MarginRight:  &wrapperspb.Int32Value{Value: 3},
 			},
-			validation.ErrChartLeftMarginTooBig,
+			nil,
+			validation.ErrChartLeftMarginIsTooBig,
 		},
 		{
 			"too_big_right_margin",
 			&render.ChartMargins{
-				MarginTop:    1,
-				MarginBottom: 2,
-				MarginLeft:   3,
-				MarginRight:  200_000,
+				MarginTop:    &wrapperspb.Int32Value{Value: 1},
+				MarginBottom: &wrapperspb.Int32Value{Value: 2},
+				MarginLeft:   &wrapperspb.Int32Value{Value: 3},
+				MarginRight:  &wrapperspb.Int32Value{Value: 200_000},
 			},
-			validation.ErrChartRightMarginTooBig,
+			nil,
+			validation.ErrChartRightMarginIsTooBig,
 		},
 		{
 			"too_small_top_margin",
 			&render.ChartMargins{
-				MarginTop:    -1,
-				MarginBottom: 1,
-				MarginLeft:   2,
-				MarginRight:  3,
+				MarginTop:    &wrapperspb.Int32Value{Value: -1},
+				MarginBottom: &wrapperspb.Int32Value{Value: 1},
+				MarginLeft:   &wrapperspb.Int32Value{Value: 2},
+				MarginRight:  &wrapperspb.Int32Value{Value: 3},
 			},
-			validation.ErrChartTopMarginTooSmall,
+			nil,
+			validation.ErrChartTopMarginIsTooSmall,
 		},
 		{
 			"too_small_bottom_margin",
 			&render.ChartMargins{
-				MarginTop:    1,
-				MarginBottom: -2,
-				MarginLeft:   2,
-				MarginRight:  3,
+				MarginTop:    &wrapperspb.Int32Value{Value: 1},
+				MarginBottom: &wrapperspb.Int32Value{Value: -2},
+				MarginLeft:   &wrapperspb.Int32Value{Value: 2},
+				MarginRight:  &wrapperspb.Int32Value{Value: 3},
 			},
-			validation.ErrChartBottomMarginTooSmall,
+			nil,
+			validation.ErrChartBottomMarginIsTooSmall,
 		},
 		{
 			"too_small_left_margin",
 			&render.ChartMargins{
-				MarginTop:    1,
-				MarginBottom: 2,
-				MarginLeft:   -10_000,
-				MarginRight:  3,
+				MarginTop:    &wrapperspb.Int32Value{Value: 1},
+				MarginBottom: &wrapperspb.Int32Value{Value: 2},
+				MarginLeft:   &wrapperspb.Int32Value{Value: -10_000},
+				MarginRight:  &wrapperspb.Int32Value{Value: 3},
 			},
-			validation.ErrChartLeftMarginTooSmall,
+			nil,
+			validation.ErrChartLeftMarginIsTooSmall,
 		},
 		{
 			"too_small_right_margin",
 			&render.ChartMargins{
-				MarginTop:    1,
-				MarginBottom: 2,
-				MarginLeft:   3,
-				MarginRight:  -100_000,
+				MarginTop:    &wrapperspb.Int32Value{Value: 1},
+				MarginBottom: &wrapperspb.Int32Value{Value: 2},
+				MarginLeft:   &wrapperspb.Int32Value{Value: 3},
+				MarginRight:  &wrapperspb.Int32Value{Value: -100_000},
 			},
-			validation.ErrChartRightMarginTooSmall,
+			nil,
+			validation.ErrChartRightMarginIsTooSmall,
+		},
+		{
+			"no_margins",
+			nil,
+			nil,
+			validation.ErrChartMarginsAreNotSpecified,
+		},
+		{
+			"default_top_margin",
+			&render.ChartMargins{
+				MarginTop:    nil,
+				MarginBottom: &wrapperspb.Int32Value{Value: 1},
+				MarginLeft:   &wrapperspb.Int32Value{Value: 2},
+				MarginRight:  &wrapperspb.Int32Value{Value: 3},
+			},
+			&render.ChartMargins{
+				MarginTop:    &wrapperspb.Int32Value{Value: 90},
+				MarginBottom: &wrapperspb.Int32Value{Value: 1},
+				MarginLeft:   &wrapperspb.Int32Value{Value: 2},
+				MarginRight:  &wrapperspb.Int32Value{Value: 3},
+			},
+			nil,
+		},
+		{
+			"no_bottom_margin",
+			&render.ChartMargins{
+				MarginTop:    &wrapperspb.Int32Value{Value: 1},
+				MarginBottom: nil,
+				MarginLeft:   &wrapperspb.Int32Value{Value: 2},
+				MarginRight:  &wrapperspb.Int32Value{Value: 3},
+			},
+			&render.ChartMargins{
+				MarginTop:    &wrapperspb.Int32Value{Value: 1},
+				MarginBottom: &wrapperspb.Int32Value{Value: 50},
+				MarginLeft:   &wrapperspb.Int32Value{Value: 2},
+				MarginRight:  &wrapperspb.Int32Value{Value: 3},
+			},
+			nil,
+		},
+		{
+			"no_left_margin",
+			&render.ChartMargins{
+				MarginTop:    &wrapperspb.Int32Value{Value: 1},
+				MarginBottom: &wrapperspb.Int32Value{Value: 2},
+				MarginLeft:   nil,
+				MarginRight:  &wrapperspb.Int32Value{Value: 3},
+			},
+			&render.ChartMargins{
+				MarginTop:    &wrapperspb.Int32Value{Value: 1},
+				MarginBottom: &wrapperspb.Int32Value{Value: 2},
+				MarginLeft:   &wrapperspb.Int32Value{Value: 60},
+				MarginRight:  &wrapperspb.Int32Value{Value: 3},
+			},
+			nil,
+		},
+		{
+			"no_right_margin",
+			&render.ChartMargins{
+				MarginTop:    &wrapperspb.Int32Value{Value: 1},
+				MarginBottom: &wrapperspb.Int32Value{Value: 2},
+				MarginLeft:   &wrapperspb.Int32Value{Value: 3},
+				MarginRight:  nil,
+			},
+			&render.ChartMargins{
+				MarginTop:    &wrapperspb.Int32Value{Value: 1},
+				MarginBottom: &wrapperspb.Int32Value{Value: 2},
+				MarginLeft:   &wrapperspb.Int32Value{Value: 3},
+				MarginRight:  &wrapperspb.Int32Value{Value: 40},
+			},
+			nil,
 		},
 	}
 
@@ -134,7 +232,11 @@ func TestValidateChartMargins(t *testing.T) {
 		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
-			assert.Equal(t, tc.expectedErr, validation.ValidateChartMargins(tc.chartMargins))
+			actualChartMargins, actualErr := validation.ValidateChartMargins(tc.chartMargins)
+			if tc.expectedChartMargins != nil {
+				assert.Equal(t, tc.expectedChartMargins, actualChartMargins)
+			}
+			assert.Equal(t, tc.expectedErr, actualErr)
 		})
 	}
 }

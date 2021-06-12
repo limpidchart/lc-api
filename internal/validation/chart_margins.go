@@ -1,7 +1,10 @@
 package validation
 
 import (
+	"errors"
 	"fmt"
+
+	"google.golang.org/protobuf/types/known/wrapperspb"
 
 	"github.com/limpidchart/lc-api/internal/render/github.com/limpidchart/lc-proto/render/v0"
 )
@@ -9,67 +12,139 @@ import (
 const (
 	chartMarginMin = 0
 	chartMarginMax = 100_000
+
+	marginTopDefault    = 90
+	marginBottomDefault = 50
+	marginLeftDefault   = 60
+	marginRightDefault  = 40
 )
 
 var (
-	// ErrChartTopMarginTooBig contains error message about too big chart top margin.
-	ErrChartTopMarginTooBig = fmt.Errorf("chart max top margin is %d", chartMarginMax)
+	// ErrChartMarginsAreNotSpecified contains error message about not specified chart margins.
+	ErrChartMarginsAreNotSpecified = errors.New("chart margins are not specified")
 
-	// ErrChartTopMarginTooSmall contains error message about too small chart top margin.
-	ErrChartTopMarginTooSmall = fmt.Errorf("chart min top margin is %d", chartMarginMin)
+	// ErrChartTopMarginIsTooBig contains error message about too big chart top margin.
+	ErrChartTopMarginIsTooBig = fmt.Errorf("chart max top margin is %d", chartMarginMax)
 
-	// ErrChartBottomMarginTooBig contains error message about too big chart bottom margin.
-	ErrChartBottomMarginTooBig = fmt.Errorf("chart max bottom margin is %d", chartMarginMax)
+	// ErrChartTopMarginIsTooSmall contains error message about too small chart top margin.
+	ErrChartTopMarginIsTooSmall = fmt.Errorf("chart min top margin is %d", chartMarginMin)
 
-	// ErrChartBottomMarginTooSmall contains error message about too small chart bottom margin.
-	ErrChartBottomMarginTooSmall = fmt.Errorf("chart min bottom margin is %d", chartMarginMin)
+	// ErrChartBottomMarginIsTooBig contains error message about too big chart bottom margin.
+	ErrChartBottomMarginIsTooBig = fmt.Errorf("chart max bottom margin is %d", chartMarginMax)
 
-	// ErrChartLeftMarginTooBig contains error message about too big chart left margin.
-	ErrChartLeftMarginTooBig = fmt.Errorf("chart max left margin is %d", chartMarginMax)
+	// ErrChartBottomMarginIsTooSmall contains error message about too small chart bottom margin.
+	ErrChartBottomMarginIsTooSmall = fmt.Errorf("chart min bottom margin is %d", chartMarginMin)
 
-	// ErrChartLeftMarginTooSmall contains error message about too small chart left margin.
-	ErrChartLeftMarginTooSmall = fmt.Errorf("chart min left margin is %d", chartMarginMin)
+	// ErrChartLeftMarginIsTooBig contains error message about too big chart left margin.
+	ErrChartLeftMarginIsTooBig = fmt.Errorf("chart max left margin is %d", chartMarginMax)
 
-	// ErrChartRightMarginTooBig contains error message about too big chart right margin.
-	ErrChartRightMarginTooBig = fmt.Errorf("chart max right margin is %d", chartMarginMax)
+	// ErrChartLeftMarginIsTooSmall contains error message about too small chart left margin.
+	ErrChartLeftMarginIsTooSmall = fmt.Errorf("chart min left margin is %d", chartMarginMin)
 
-	// ErrChartRightMarginTooSmall contains error message about too small chart right margin.
-	ErrChartRightMarginTooSmall = fmt.Errorf("chart min right margin is %d", chartMarginMin)
+	// ErrChartRightMarginIsTooBig contains error message about too big chart right margin.
+	ErrChartRightMarginIsTooBig = fmt.Errorf("chart max right margin is %d", chartMarginMax)
+
+	// ErrChartRightMarginIsTooSmall contains error message about too small chart right margin.
+	ErrChartRightMarginIsTooSmall = fmt.Errorf("chart min right margin is %d", chartMarginMin)
 )
 
-// ValidateChartMargins check if every chart margin value is in acceptable range.
-func ValidateChartMargins(chartMargins *render.ChartMargins) error {
-	if chartMargins.MarginTop > chartMarginMax {
-		return ErrChartTopMarginTooBig
+// ValidateChartMargins check if every chart margin value is specified and in acceptable range.
+func ValidateChartMargins(chartMargins *render.ChartMargins) (*render.ChartMargins, error) {
+	if chartMargins == nil {
+		return nil, ErrChartMarginsAreNotSpecified
 	}
 
-	if chartMargins.MarginTop < chartMarginMin {
-		return ErrChartTopMarginTooSmall
+	chartMargins, err := validateTopMargin(chartMargins)
+	if err != nil {
+		return nil, err
 	}
 
-	if chartMargins.MarginBottom > chartMarginMax {
-		return ErrChartBottomMarginTooBig
+	chartMargins, err = validateBottomMargin(chartMargins)
+	if err != nil {
+		return nil, err
 	}
 
-	if chartMargins.MarginBottom < chartMarginMin {
-		return ErrChartBottomMarginTooSmall
+	chartMargins, err = validateLeftMargin(chartMargins)
+	if err != nil {
+		return nil, err
 	}
 
-	if chartMargins.MarginLeft > chartMarginMax {
-		return ErrChartLeftMarginTooBig
+	chartMargins, err = validateRightMargin(chartMargins)
+	if err != nil {
+		return nil, err
 	}
 
-	if chartMargins.MarginLeft < chartMarginMin {
-		return ErrChartLeftMarginTooSmall
+	return chartMargins, nil
+}
+
+func validateTopMargin(chartMargins *render.ChartMargins) (*render.ChartMargins, error) {
+	if chartMargins.MarginTop == nil {
+		chartMargins.MarginTop = &wrapperspb.Int32Value{Value: marginTopDefault}
+
+		return chartMargins, nil
 	}
 
-	if chartMargins.MarginRight > chartMarginMax {
-		return ErrChartRightMarginTooBig
+	if chartMargins.MarginTop.Value > chartMarginMax {
+		return nil, ErrChartTopMarginIsTooBig
 	}
 
-	if chartMargins.MarginRight < chartMarginMin {
-		return ErrChartRightMarginTooSmall
+	if chartMargins.MarginTop.Value < chartMarginMin {
+		return nil, ErrChartTopMarginIsTooSmall
 	}
 
-	return nil
+	return chartMargins, nil
+}
+
+func validateBottomMargin(chartMargins *render.ChartMargins) (*render.ChartMargins, error) {
+	if chartMargins.MarginBottom == nil {
+		chartMargins.MarginBottom = &wrapperspb.Int32Value{Value: marginBottomDefault}
+
+		return chartMargins, nil
+	}
+
+	if chartMargins.MarginBottom.Value > chartMarginMax {
+		return nil, ErrChartBottomMarginIsTooBig
+	}
+
+	if chartMargins.MarginBottom.Value < chartMarginMin {
+		return nil, ErrChartBottomMarginIsTooSmall
+	}
+
+	return chartMargins, nil
+}
+
+func validateLeftMargin(chartMargins *render.ChartMargins) (*render.ChartMargins, error) {
+	if chartMargins.MarginLeft == nil {
+		chartMargins.MarginLeft = &wrapperspb.Int32Value{Value: marginLeftDefault}
+
+		return chartMargins, nil
+	}
+
+	if chartMargins.MarginLeft.Value > chartMarginMax {
+		return nil, ErrChartLeftMarginIsTooBig
+	}
+
+	if chartMargins.MarginLeft.Value < chartMarginMin {
+		return nil, ErrChartLeftMarginIsTooSmall
+	}
+
+	return chartMargins, nil
+}
+
+func validateRightMargin(chartMargins *render.ChartMargins) (*render.ChartMargins, error) {
+	if chartMargins.MarginRight == nil {
+		chartMargins.MarginRight = &wrapperspb.Int32Value{Value: marginRightDefault}
+
+		return chartMargins, nil
+	}
+
+	if chartMargins.MarginRight.Value > chartMarginMax {
+		return nil, ErrChartRightMarginIsTooBig
+	}
+
+	if chartMargins.MarginRight.Value < chartMarginMin {
+		return nil, ErrChartRightMarginIsTooSmall
+	}
+
+	return chartMargins, nil
 }
