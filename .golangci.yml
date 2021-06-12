@@ -7,6 +7,15 @@ linters-settings:
     go: 1.16
   stylecheck:
     go: 1.16
+  govet:
+    check-shadowing: true
+    enable-all: true
+  cyclop:
+    max-complexity: 24
+  gci:
+    local-prefixes: github.com/limpidchart
+  goimports:
+    local-prefixes: github.com/limpidchart
 linters:
   enable:
     - deadcode

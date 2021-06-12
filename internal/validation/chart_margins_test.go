@@ -3,14 +3,16 @@ package validation_test
 import (
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+
 	"github.com/limpidchart/lc-api/internal/render/github.com/limpidchart/lc-proto/render/v0"
 	"github.com/limpidchart/lc-api/internal/validation"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestValidateChartMargins(t *testing.T) {
 	t.Parallel()
 
+	//nolint: govet
 	tt := []struct {
 		name         string
 		chartMargins *render.ChartMargins
