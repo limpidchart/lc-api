@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"google.golang.org/protobuf/types/known/wrapperspb"
 
 	"github.com/limpidchart/lc-api/internal/render/github.com/limpidchart/lc-proto/render/v0"
 	"github.com/limpidchart/lc-api/internal/validation"
@@ -14,65 +15,106 @@ func TestValidateChartSizes(t *testing.T) {
 
 	//nolint: govet
 	tt := []struct {
-		name        string
-		chartSizes  *render.ChartSizes
-		expectedErr error
+		name               string
+		chartSizes         *render.ChartSizes
+		expectedChartSizes *render.ChartSizes
+		expectedErr        error
 	}{
 		{
 			"standard_sizes",
 			&render.ChartSizes{
-				Width:  800,
-				Height: 600,
+				Width:  &wrapperspb.Int32Value{Value: 800},
+				Height: &wrapperspb.Int32Value{Value: 600},
+			},
+			&render.ChartSizes{
+				Width:  &wrapperspb.Int32Value{Value: 800},
+				Height: &wrapperspb.Int32Value{Value: 600},
 			},
 			nil,
 		},
 		{
 			"small_sizes",
 			&render.ChartSizes{
-				Width:  10,
-				Height: 10,
+				Width:  &wrapperspb.Int32Value{Value: 10},
+				Height: &wrapperspb.Int32Value{Value: 10},
+			},
+			&render.ChartSizes{
+				Width:  &wrapperspb.Int32Value{Value: 10},
+				Height: &wrapperspb.Int32Value{Value: 10},
 			},
 			nil,
 		},
 		{
 			"big_sizes",
 			&render.ChartSizes{
-				Width:  100_000,
-				Height: 100_000,
+				Width:  &wrapperspb.Int32Value{Value: 100_000},
+				Height: &wrapperspb.Int32Value{Value: 100_000},
+			},
+			&render.ChartSizes{
+				Width:  &wrapperspb.Int32Value{Value: 100_000},
+				Height: &wrapperspb.Int32Value{Value: 100_000},
 			},
 			nil,
 		},
 		{
 			"width_is_too_small",
 			&render.ChartSizes{
-				Width:  -100,
-				Height: 100,
+				Width:  &wrapperspb.Int32Value{Value: -100},
+				Height: &wrapperspb.Int32Value{Value: 100},
 			},
-			validation.ErrChartSizeWidthTooSmall,
+			nil,
+			validation.ErrChartSizeWidthIsTooSmall,
 		},
 		{
 			"width_is_too_big",
 			&render.ChartSizes{
-				Width:  10_000_000,
-				Height: 100,
+				Width:  &wrapperspb.Int32Value{Value: 10_000_000},
+				Height: &wrapperspb.Int32Value{Value: 100},
 			},
-			validation.ErrChartSizeWidthTooBig,
+			nil,
+			validation.ErrChartSizeWidthIsTooBig,
 		},
 		{
 			"height_is_too_small",
 			&render.ChartSizes{
-				Width:  100,
-				Height: -100,
+				Width:  &wrapperspb.Int32Value{Value: 100},
+				Height: &wrapperspb.Int32Value{Value: -100},
 			},
-			validation.ErrChartSizeHeightTooSmall,
+			nil,
+			validation.ErrChartSizeHeightIsTooSmall,
 		},
 		{
 			"height_is_too_big",
 			&render.ChartSizes{
-				Width:  100,
-				Height: 10_000_000,
+				Width:  &wrapperspb.Int32Value{Value: 100},
+				Height: &wrapperspb.Int32Value{Value: 10_000_000},
 			},
-			validation.ErrChartSizeHeightTooBig,
+			nil,
+			validation.ErrChartSizeHeightIsTooBig,
+		},
+		{
+			"no_width",
+			&render.ChartSizes{
+				Width:  nil,
+				Height: &wrapperspb.Int32Value{Value: 100},
+			},
+			&render.ChartSizes{
+				Width:  &wrapperspb.Int32Value{Value: 800},
+				Height: &wrapperspb.Int32Value{Value: 100},
+			},
+			nil,
+		},
+		{
+			"no_height",
+			&render.ChartSizes{
+				Width:  &wrapperspb.Int32Value{Value: 100},
+				Height: nil,
+			},
+			&render.ChartSizes{
+				Width:  &wrapperspb.Int32Value{Value: 100},
+				Height: &wrapperspb.Int32Value{Value: 600},
+			},
+			nil,
 		},
 	}
 
@@ -80,7 +122,11 @@ func TestValidateChartSizes(t *testing.T) {
 		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
-			assert.Equal(t, tc.expectedErr, validation.ValidateChartSizes(tc.chartSizes))
+			actualChartSizes, actualErr := validation.ValidateChartSizes(tc.chartSizes)
+			if tc.expectedChartSizes != nil {
+				assert.Equal(t, tc.expectedChartSizes, actualChartSizes)
+			}
+			assert.Equal(t, tc.expectedErr, actualErr)
 		})
 	}
 }

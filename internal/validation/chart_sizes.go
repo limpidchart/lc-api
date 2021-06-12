@@ -3,6 +3,8 @@ package validation
 import (
 	"fmt"
 
+	"google.golang.org/protobuf/types/known/wrapperspb"
+
 	"github.com/limpidchart/lc-api/internal/render/github.com/limpidchart/lc-proto/render/v0"
 )
 
@@ -12,39 +14,74 @@ const (
 
 	chartSizeMinHeight = 10
 	chartSizeMaxHeight = 100_000
+
+	widthDefault  = 800
+	heightDefault = 600
 )
 
 var (
-	// ErrChartSizeWidthTooBig contains error message about too big chart width size.
-	ErrChartSizeWidthTooBig = fmt.Errorf("chart size max width is %d", chartSizeMaxWidth)
+	// ErrChartSizeWidthIsTooBig contains error message about too big chart width size.
+	ErrChartSizeWidthIsTooBig = fmt.Errorf("chart size max width is %d", chartSizeMaxWidth)
 
-	// ErrChartSizeWidthTooSmall contains error message about too small chart width size.
-	ErrChartSizeWidthTooSmall = fmt.Errorf("chart size min width is %d", chartSizeMinWidth)
+	// ErrChartSizeWidthIsTooSmall contains error message about too small chart width size.
+	ErrChartSizeWidthIsTooSmall = fmt.Errorf("chart size min width is %d", chartSizeMinWidth)
 
-	// ErrChartSizeHeightTooBig contains error message about too big chart height size.
-	ErrChartSizeHeightTooBig = fmt.Errorf("chart size max height is %d", chartSizeMaxHeight)
+	// ErrChartSizeHeightIsTooBig contains error message about too big chart height size.
+	ErrChartSizeHeightIsTooBig = fmt.Errorf("chart size max height is %d", chartSizeMaxHeight)
 
-	// ErrChartSizeHeightTooSmall contains error message about too small chart height size.
-	ErrChartSizeHeightTooSmall = fmt.Errorf("chart size min height is %d", chartSizeMinHeight)
+	// ErrChartSizeHeightIsTooSmall contains error message about too small chart height size.
+	ErrChartSizeHeightIsTooSmall = fmt.Errorf("chart size min height is %d", chartSizeMinHeight)
 )
 
-// ValidateChartSizes check if every chart size value is in acceptable range.
-func ValidateChartSizes(chartSizes *render.ChartSizes) error {
-	if chartSizes.Width > chartSizeMaxWidth {
-		return ErrChartSizeWidthTooBig
+// ValidateChartSizes check if every chart size value is specified and in acceptable range.
+func ValidateChartSizes(chartSizes *render.ChartSizes) (*render.ChartSizes, error) {
+	if chartSizes == nil {
+		return &render.ChartSizes{
+			Width:  &wrapperspb.Int32Value{Value: widthDefault},
+			Height: &wrapperspb.Int32Value{Value: heightDefault},
+		}, nil
 	}
 
-	if chartSizes.Width < chartSizeMinWidth {
-		return ErrChartSizeWidthTooSmall
+	chartSizes, err := validateChartWidth(chartSizes)
+	if err != nil {
+		return nil, err
 	}
 
-	if chartSizes.Height > chartSizeMaxHeight {
-		return ErrChartSizeHeightTooBig
+	return validateChartHeight(chartSizes)
+}
+
+func validateChartWidth(chartSizes *render.ChartSizes) (*render.ChartSizes, error) {
+	if chartSizes.Width == nil {
+		chartSizes.Width = &wrapperspb.Int32Value{Value: widthDefault}
+
+		return chartSizes, nil
 	}
 
-	if chartSizes.Height < chartSizeMinHeight {
-		return ErrChartSizeHeightTooSmall
+	if chartSizes.Width.Value > chartSizeMaxWidth {
+		return nil, ErrChartSizeWidthIsTooBig
 	}
 
-	return nil
+	if chartSizes.Width.Value < chartSizeMinWidth {
+		return nil, ErrChartSizeWidthIsTooSmall
+	}
+
+	return chartSizes, nil
+}
+
+func validateChartHeight(chartSizes *render.ChartSizes) (*render.ChartSizes, error) {
+	if chartSizes.Height == nil {
+		chartSizes.Height = &wrapperspb.Int32Value{Value: heightDefault}
+
+		return chartSizes, nil
+	}
+
+	if chartSizes.Height.Value > chartSizeMaxHeight {
+		return nil, ErrChartSizeHeightIsTooBig
+	}
+
+	if chartSizes.Height.Value < chartSizeMinHeight {
+		return nil, ErrChartSizeHeightIsTooSmall
+	}
+
+	return chartSizes, nil
 }
