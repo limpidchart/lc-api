@@ -116,6 +116,15 @@ func TestValidateChartSizes(t *testing.T) {
 			},
 			nil,
 		},
+		{
+			"no_sizes",
+			nil,
+			&render.ChartSizes{
+				Width:  &wrapperspb.Int32Value{Value: 800},
+				Height: &wrapperspb.Int32Value{Value: 600},
+			},
+			nil,
+		},
 	}
 
 	for _, tc := range tt {
