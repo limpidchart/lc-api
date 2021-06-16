@@ -4,265 +4,11 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"google.golang.org/protobuf/types/known/wrapperspb"
 
 	"github.com/limpidchart/lc-api/internal/render/github.com/limpidchart/lc-proto/render/v0"
+	"github.com/limpidchart/lc-api/internal/testutils"
 	"github.com/limpidchart/lc-api/internal/validate/apitorenderer"
 )
-
-func testingColorsDefault() *render.ChartViewColors {
-	return &render.ChartViewColors{
-		FillColor: &render.ChartElementColor{
-			ColorValue: &render.ChartElementColor_ColorHex{
-				ColorHex: "#71c7ec",
-			},
-		},
-		StrokeColor: &render.ChartElementColor{
-			ColorValue: &render.ChartElementColor_ColorHex{
-				ColorHex: "#005073",
-			},
-		},
-		PointFillColor: &render.ChartElementColor{
-			ColorValue: &render.ChartElementColor_ColorHex{
-				ColorHex: "#71c7ec",
-			},
-		},
-		PointStrokeColor: &render.ChartElementColor{
-			ColorValue: &render.ChartElementColor_ColorHex{
-				ColorHex: "#005073",
-			},
-		},
-	}
-}
-
-func testingChartUnspecifiedKind() *render.ChartView {
-	res := testingHorizontalBarView()
-	res.Kind = render.ChartView_UNSPECIFIED_KIND
-
-	return res
-}
-
-func testingChartNoValues() *render.ChartView {
-	res := testingHorizontalBarView()
-	res.Values = nil
-
-	return res
-}
-
-func testingHorizontalBarView() *render.ChartView {
-	return &render.ChartView{
-		Kind: render.ChartView_HORIZONTAL_BAR,
-		Values: &render.ChartView_BarsValues{
-			BarsValues: &render.ChartViewBarsValues{
-				BarsDatasets: []*render.ChartViewBarsValues_BarsDataset{
-					{
-						Values: []float32{10, 20},
-						FillColor: &render.ChartElementColor{
-							ColorValue: &render.ChartElementColor_ColorHex{
-								ColorHex: "#66b2b2",
-							},
-						},
-						StrokeColor: &render.ChartElementColor{
-							ColorValue: &render.ChartElementColor_ColorHex{
-								ColorHex: "#004c4c",
-							},
-						},
-					},
-				},
-			},
-		},
-		Colors:             nil,
-		BarLabelVisible:    &wrapperspb.BoolValue{Value: false},
-		BarLabelPosition:   render.ChartView_END_OUTSIDE,
-		PointVisible:       nil,
-		PointType:          0,
-		PointLabelVisible:  nil,
-		PointLabelPosition: 0,
-	}
-}
-
-func testingHorizontalBarViewWithDefaults() *render.ChartView {
-	res := testingHorizontalBarView()
-	res.Colors = testingColorsDefault()
-	res.PointVisible = &wrapperspb.BoolValue{Value: true}
-	res.PointType = render.ChartView_CIRCLE
-	res.PointLabelVisible = &wrapperspb.BoolValue{Value: true}
-	res.PointLabelPosition = render.ChartView_TOP
-
-	return res
-}
-
-func testingAreaView() *render.ChartView {
-	return &render.ChartView{
-		Kind: render.ChartView_AREA,
-		Values: &render.ChartView_ScalarValues{
-			ScalarValues: &render.ChartViewScalarValues{
-				Values: []float32{1010, 2100},
-			},
-		},
-		Colors: &render.ChartViewColors{
-			FillColor: &render.ChartElementColor{
-				ColorValue: &render.ChartElementColor_ColorHex{
-					ColorHex: "#71c7ee",
-				},
-			},
-			StrokeColor: &render.ChartElementColor{
-				ColorValue: &render.ChartElementColor_ColorHex{
-					ColorHex: "#005072",
-				},
-			},
-			PointFillColor:   nil,
-			PointStrokeColor: nil,
-		},
-		BarLabelVisible:    nil,
-		BarLabelPosition:   0,
-		PointVisible:       &wrapperspb.BoolValue{Value: false},
-		PointType:          render.ChartView_X,
-		PointLabelVisible:  &wrapperspb.BoolValue{Value: false},
-		PointLabelPosition: render.ChartView_TOP,
-	}
-}
-
-func testingAreaViewWithDefaults() *render.ChartView {
-	res := testingAreaView()
-	res.Colors = testingColorsDefault()
-	res.Colors.FillColor = &render.ChartElementColor{
-		ColorValue: &render.ChartElementColor_ColorHex{
-			ColorHex: "#71c7ee",
-		},
-	}
-	res.Colors.StrokeColor = &render.ChartElementColor{
-		ColorValue: &render.ChartElementColor_ColorHex{
-			ColorHex: "#005072",
-		},
-	}
-	res.BarLabelVisible = &wrapperspb.BoolValue{Value: true}
-	res.BarLabelPosition = render.ChartView_CENTER
-
-	return res
-}
-
-func testingAreaViewBadRGBColor() *render.ChartView {
-	res := testingAreaView()
-	res.Colors = testingColorsDefault()
-	res.Colors.FillColor = &render.ChartElementColor{
-		ColorValue: &render.ChartElementColor_ColorRgb{
-			ColorRgb: &render.ChartElementColor_RGB{
-				R: 1,
-				G: 320,
-				B: 2,
-			},
-		},
-	}
-
-	return res
-}
-
-func testingLineView() *render.ChartView {
-	return &render.ChartView{
-		Kind: render.ChartView_LINE,
-		Values: &render.ChartView_ScalarValues{
-			ScalarValues: &render.ChartViewScalarValues{
-				Values: []float32{100, 200},
-			},
-		},
-		Colors:             nil,
-		BarLabelVisible:    nil,
-		BarLabelPosition:   0,
-		PointVisible:       &wrapperspb.BoolValue{Value: true},
-		PointType:          render.ChartView_SQUARE,
-		PointLabelVisible:  &wrapperspb.BoolValue{Value: true},
-		PointLabelPosition: render.ChartView_BOTTOM_RIGHT,
-	}
-}
-
-func testingLineViewWithDefaults() *render.ChartView {
-	res := testingLineView()
-	res.Colors = testingColorsDefault()
-	res.BarLabelVisible = &wrapperspb.BoolValue{Value: true}
-	res.BarLabelPosition = render.ChartView_CENTER
-
-	return res
-}
-
-func testingScatterView() *render.ChartView {
-	return &render.ChartView{
-		Kind: render.ChartView_SCATTER,
-		Values: &render.ChartView_PointsValues{
-			PointsValues: &render.ChartViewPointsValues{
-				Points: []*render.ChartViewPointsValues_Point{
-					{
-						X: 321,
-						Y: 8741,
-					},
-					{
-						X: 23,
-						Y: 85,
-					},
-				},
-			},
-		},
-		Colors:             nil,
-		BarLabelVisible:    nil,
-		BarLabelPosition:   0,
-		PointVisible:       &wrapperspb.BoolValue{Value: true},
-		PointType:          render.ChartView_CIRCLE,
-		PointLabelVisible:  &wrapperspb.BoolValue{Value: true},
-		PointLabelPosition: render.ChartView_TOP_LEFT,
-	}
-}
-
-func testingScatterViewWithDefaults() *render.ChartView {
-	res := testingScatterView()
-	res.Colors = testingColorsDefault()
-	res.BarLabelVisible = &wrapperspb.BoolValue{Value: true}
-	res.BarLabelPosition = render.ChartView_CENTER
-
-	return res
-}
-
-func testingVerticalBarView() *render.ChartView {
-	return &render.ChartView{
-		Kind: render.ChartView_VERTICAL_BAR,
-		Values: &render.ChartView_BarsValues{
-			BarsValues: &render.ChartViewBarsValues{
-				BarsDatasets: []*render.ChartViewBarsValues_BarsDataset{
-					{
-						Values: []float32{20, 30},
-						FillColor: &render.ChartElementColor{
-							ColorValue: &render.ChartElementColor_ColorHex{
-								ColorHex: "#bf0000",
-							},
-						},
-						StrokeColor: &render.ChartElementColor{
-							ColorValue: &render.ChartElementColor_ColorHex{
-								ColorHex: "#400000",
-							},
-						},
-					},
-				},
-			},
-		},
-		Colors:             nil,
-		BarLabelVisible:    &wrapperspb.BoolValue{Value: false},
-		BarLabelPosition:   render.ChartView_END_OUTSIDE,
-		PointVisible:       nil,
-		PointType:          0,
-		PointLabelVisible:  nil,
-		PointLabelPosition: 0,
-	}
-}
-
-func testingVerticalBarViewWithDefaults() *render.ChartView {
-	res := testingVerticalBarView()
-	res.Colors = testingColorsDefault()
-	res.PointVisible = &wrapperspb.BoolValue{Value: true}
-	res.PointType = render.ChartView_CIRCLE
-	res.PointLabelVisible = &wrapperspb.BoolValue{Value: true}
-	res.PointLabelPosition = render.ChartView_TOP
-
-	return res
-}
 
 func TestValidateChartViews(t *testing.T) {
 	t.Parallel()
@@ -279,37 +25,37 @@ func TestValidateChartViews(t *testing.T) {
 	}{
 		{
 			"vertical_bar_and_line",
-			[]*render.ChartView{testingVerticalBarView(), testingLineView()},
+			[]*render.ChartView{testutils.VerticalBarView(), testutils.LineView()},
 			render.ChartScale_BAND,
 			render.ChartScale_LINEAR,
-			[]*render.ChartView{testingVerticalBarViewWithDefaults(), testingLineViewWithDefaults()},
-			2,
+			[]*render.ChartView{testutils.VerticalBarViewWithDefaults(), testutils.LineViewWithDefaults()},
+			3,
 			nil,
 		},
 		{
 			"area",
-			[]*render.ChartView{testingAreaView()},
+			[]*render.ChartView{testutils.AreaView()},
 			render.ChartScale_BAND,
 			render.ChartScale_LINEAR,
-			[]*render.ChartView{testingAreaViewWithDefaults()},
+			[]*render.ChartView{testutils.AreaViewWithDefaults()},
 			2,
 			nil,
 		},
 		{
 			"horizontal_bar",
-			[]*render.ChartView{testingHorizontalBarView()},
+			[]*render.ChartView{testutils.HorizontalBarView()},
 			render.ChartScale_LINEAR,
 			render.ChartScale_BAND,
-			[]*render.ChartView{testingHorizontalBarViewWithDefaults()},
+			[]*render.ChartView{testutils.HorizontalBarViewWithDefaults()},
 			0,
 			nil,
 		},
 		{
 			"scatter",
-			[]*render.ChartView{testingScatterView()},
+			[]*render.ChartView{testutils.ScatterView()},
 			render.ChartScale_LINEAR,
 			render.ChartScale_LINEAR,
-			[]*render.ChartView{testingScatterViewWithDefaults()},
+			[]*render.ChartView{testutils.ScatterViewWithDefaults()},
 			0,
 			nil,
 		},
@@ -324,7 +70,7 @@ func TestValidateChartViews(t *testing.T) {
 		},
 		{
 			"unknown_view_kind",
-			[]*render.ChartView{testingChartUnspecifiedKind()},
+			[]*render.ChartView{testutils.UnspecifiedKindView()},
 			render.ChartScale_LINEAR,
 			render.ChartScale_LINEAR,
 			nil,
@@ -333,7 +79,7 @@ func TestValidateChartViews(t *testing.T) {
 		},
 		{
 			"view_without_values",
-			[]*render.ChartView{testingChartNoValues()},
+			[]*render.ChartView{testutils.HorizontalBarViewWithoutValues()},
 			render.ChartScale_LINEAR,
 			render.ChartScale_BAND,
 			nil,
@@ -342,7 +88,7 @@ func TestValidateChartViews(t *testing.T) {
 		},
 		{
 			"bad_categories_count",
-			[]*render.ChartView{testingAreaView()},
+			[]*render.ChartView{testutils.AreaView()},
 			render.ChartScale_BAND,
 			render.ChartScale_LINEAR,
 			nil,
@@ -351,7 +97,7 @@ func TestValidateChartViews(t *testing.T) {
 		},
 		{
 			"bad_rgb_value",
-			[]*render.ChartView{testingAreaViewBadRGBColor()},
+			[]*render.ChartView{testutils.AreaViewBadRGBColor()},
 			render.ChartScale_BAND,
 			render.ChartScale_LINEAR,
 			nil,
@@ -360,7 +106,7 @@ func TestValidateChartViews(t *testing.T) {
 		},
 		{
 			"area_with_bad_scales",
-			[]*render.ChartView{testingAreaView()},
+			[]*render.ChartView{testutils.AreaView()},
 			render.ChartScale_LINEAR,
 			render.ChartScale_LINEAR,
 			nil,
@@ -369,7 +115,7 @@ func TestValidateChartViews(t *testing.T) {
 		},
 		{
 			"horizontal_bar_with_bad_scales",
-			[]*render.ChartView{testingHorizontalBarView()},
+			[]*render.ChartView{testutils.HorizontalBarView()},
 			render.ChartScale_LINEAR,
 			render.ChartScale_LINEAR,
 			nil,
@@ -378,7 +124,7 @@ func TestValidateChartViews(t *testing.T) {
 		},
 		{
 			"line_with_bad_scales",
-			[]*render.ChartView{testingLineView()},
+			[]*render.ChartView{testutils.LineView()},
 			render.ChartScale_LINEAR,
 			render.ChartScale_LINEAR,
 			nil,
@@ -387,7 +133,7 @@ func TestValidateChartViews(t *testing.T) {
 		},
 		{
 			"scatter_with_bad_scales",
-			[]*render.ChartView{testingScatterView()},
+			[]*render.ChartView{testutils.ScatterView()},
 			render.ChartScale_LINEAR,
 			render.ChartScale_BAND,
 			nil,
@@ -396,7 +142,7 @@ func TestValidateChartViews(t *testing.T) {
 		},
 		{
 			"vertical_bar_with_bad_scales",
-			[]*render.ChartView{testingVerticalBarView()},
+			[]*render.ChartView{testutils.VerticalBarView()},
 			render.ChartScale_LINEAR,
 			render.ChartScale_BAND,
 			nil,

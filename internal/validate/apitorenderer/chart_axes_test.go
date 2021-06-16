@@ -4,68 +4,14 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"google.golang.org/protobuf/types/known/wrapperspb"
 
 	"github.com/limpidchart/lc-api/internal/render/github.com/limpidchart/lc-proto/render/v0"
+	"github.com/limpidchart/lc-api/internal/testutils"
 	"github.com/limpidchart/lc-api/internal/validate/apitorenderer"
 )
 
-func testingLinearChartScale() *render.ChartScale {
-	return &render.ChartScale{
-		Kind:       render.ChartScale_LINEAR,
-		RangeStart: &wrapperspb.Int32Value{Value: 10},
-		RangeEnd:   &wrapperspb.Int32Value{Value: 100},
-		Domain: &render.ChartScale_DomainNumeric{
-			DomainNumeric: &render.DomainNumeric{
-				Start: 20,
-				End:   40,
-			},
-		},
-		NoBoundariesOffset: false,
-		InnerPadding:       nil,
-		OuterPadding:       nil,
-	}
-}
-
-func testingBandChartScale() *render.ChartScale {
-	return &render.ChartScale{
-		Kind:       render.ChartScale_BAND,
-		RangeStart: &wrapperspb.Int32Value{Value: 0},
-		RangeEnd:   &wrapperspb.Int32Value{Value: 1000},
-		Domain: &render.ChartScale_DomainCategories{
-			DomainCategories: &render.DomainCategories{Categories: []string{"a1", "a2"}},
-		},
-		NoBoundariesOffset: true,
-		InnerPadding:       &wrapperspb.FloatValue{Value: 0.5},
-		OuterPadding:       &wrapperspb.FloatValue{Value: 0.5},
-	}
-}
-
 func TestValidateChartAxes(t *testing.T) {
 	t.Parallel()
-
-	testingLinearChartScaleWithPaddings := testingLinearChartScale()
-	testingLinearChartScaleWithPaddings.InnerPadding = &wrapperspb.FloatValue{Value: 0.1}
-	testingLinearChartScaleWithPaddings.OuterPadding = &wrapperspb.FloatValue{Value: 0.1}
-
-	testingScaleWithoutKind := testingBandChartScale()
-	testingScaleWithoutKind.Kind = render.ChartScale_UNSPECIFIED_SCALE
-
-	testingScaleWithoutDomain := testingBandChartScale()
-	testingScaleWithoutDomain.Domain = nil
-
-	testingScaleWithoutNumericDomain := testingLinearChartScale()
-	testingScaleWithoutNumericDomain.Domain = &render.ChartScale_DomainCategories{
-		DomainCategories: &render.DomainCategories{Categories: []string{"a1", "a2"}},
-	}
-
-	testingScaleWithoutCategoriesDomain := testingBandChartScale()
-	testingScaleWithoutCategoriesDomain.Domain = &render.ChartScale_DomainNumeric{
-		DomainNumeric: &render.DomainNumeric{
-			Start: 20,
-			End:   40,
-		},
-	}
 
 	//nolint: govet
 	tt := []struct {
@@ -77,23 +23,23 @@ func TestValidateChartAxes(t *testing.T) {
 		{
 			"all_is_set",
 			&render.ChartAxes{
-				AxisTop:         testingLinearChartScale(),
+				AxisTop:         testutils.LinearChartScale(),
 				AxisTopLabel:    "top",
-				AxisBottom:      testingLinearChartScale(),
+				AxisBottom:      testutils.LinearChartScale(),
 				AxisBottomLabel: "bottom",
-				AxisLeft:        testingBandChartScale(),
+				AxisLeft:        testutils.BandChartScale(),
 				AxisLeftLabel:   "left",
-				AxisRight:       testingBandChartScale(),
+				AxisRight:       testutils.BandChartScale(),
 				AxisRightLabel:  "right",
 			},
 			&render.ChartAxes{
-				AxisTop:         testingLinearChartScaleWithPaddings,
+				AxisTop:         testutils.LinearChartScaleWithDefaults(),
 				AxisTopLabel:    "top",
-				AxisBottom:      testingLinearChartScaleWithPaddings,
+				AxisBottom:      testutils.LinearChartScaleWithDefaults(),
 				AxisBottomLabel: "bottom",
-				AxisLeft:        testingBandChartScale(),
+				AxisLeft:        testutils.BandChartScale(),
 				AxisLeftLabel:   "left",
-				AxisRight:       testingBandChartScale(),
+				AxisRight:       testutils.BandChartScale(),
 				AxisRightLabel:  "right",
 			},
 			nil,
@@ -103,9 +49,9 @@ func TestValidateChartAxes(t *testing.T) {
 			&render.ChartAxes{
 				AxisTop:         nil,
 				AxisTopLabel:    "",
-				AxisBottom:      testingLinearChartScale(),
+				AxisBottom:      testutils.LinearChartScale(),
 				AxisBottomLabel: "",
-				AxisLeft:        testingBandChartScale(),
+				AxisLeft:        testutils.BandChartScale(),
 				AxisLeftLabel:   "",
 				AxisRight:       nil,
 				AxisRightLabel:  "",
@@ -113,9 +59,9 @@ func TestValidateChartAxes(t *testing.T) {
 			&render.ChartAxes{
 				AxisTop:         nil,
 				AxisTopLabel:    "",
-				AxisBottom:      testingLinearChartScaleWithPaddings,
+				AxisBottom:      testutils.LinearChartScaleWithDefaults(),
 				AxisBottomLabel: "",
-				AxisLeft:        testingBandChartScale(),
+				AxisLeft:        testutils.BandChartScale(),
 				AxisLeftLabel:   "",
 				AxisRight:       nil,
 				AxisRightLabel:  "",
@@ -135,7 +81,7 @@ func TestValidateChartAxes(t *testing.T) {
 				AxisTopLabel:    "",
 				AxisBottom:      nil,
 				AxisBottomLabel: "",
-				AxisLeft:        testingLinearChartScale(),
+				AxisLeft:        testutils.LinearChartScale(),
 				AxisLeftLabel:   "l",
 				AxisRight:       nil,
 				AxisRightLabel:  "",
@@ -146,7 +92,7 @@ func TestValidateChartAxes(t *testing.T) {
 		{
 			"no_left_and_right",
 			&render.ChartAxes{
-				AxisTop:         testingLinearChartScale(),
+				AxisTop:         testutils.LinearChartScale(),
 				AxisTopLabel:    "t",
 				AxisBottom:      nil,
 				AxisBottomLabel: "",
@@ -161,13 +107,13 @@ func TestValidateChartAxes(t *testing.T) {
 		{
 			"no_axis_kind",
 			&render.ChartAxes{
-				AxisTop:         testingLinearChartScale(),
+				AxisTop:         testutils.LinearChartScale(),
 				AxisTopLabel:    "t",
-				AxisBottom:      testingScaleWithoutKind,
+				AxisBottom:      testutils.BandChartScaleWithoutKind(),
 				AxisBottomLabel: "b",
-				AxisLeft:        testingLinearChartScale(),
+				AxisLeft:        testutils.LinearChartScale(),
 				AxisLeftLabel:   "l",
-				AxisRight:       testingLinearChartScale(),
+				AxisRight:       testutils.LinearChartScale(),
 				AxisRightLabel:  "r",
 			},
 			nil,
@@ -176,13 +122,13 @@ func TestValidateChartAxes(t *testing.T) {
 		{
 			"top_and_bottom_diff",
 			&render.ChartAxes{
-				AxisTop:         testingLinearChartScale(),
+				AxisTop:         testutils.LinearChartScale(),
 				AxisTopLabel:    "t",
-				AxisBottom:      testingBandChartScale(),
+				AxisBottom:      testutils.BandChartScale(),
 				AxisBottomLabel: "b",
-				AxisLeft:        testingLinearChartScale(),
+				AxisLeft:        testutils.LinearChartScale(),
 				AxisLeftLabel:   "l",
-				AxisRight:       testingLinearChartScale(),
+				AxisRight:       testutils.LinearChartScale(),
 				AxisRightLabel:  "r",
 			},
 			nil,
@@ -191,13 +137,13 @@ func TestValidateChartAxes(t *testing.T) {
 		{
 			"left_and_right_diff",
 			&render.ChartAxes{
-				AxisTop:         testingLinearChartScale(),
+				AxisTop:         testutils.LinearChartScale(),
 				AxisTopLabel:    "",
-				AxisBottom:      testingLinearChartScale(),
+				AxisBottom:      testutils.LinearChartScale(),
 				AxisBottomLabel: "",
-				AxisLeft:        testingLinearChartScale(),
+				AxisLeft:        testutils.LinearChartScale(),
 				AxisLeftLabel:   "",
-				AxisRight:       testingBandChartScale(),
+				AxisRight:       testutils.BandChartScale(),
 				AxisRightLabel:  "",
 			},
 			nil,
@@ -206,13 +152,13 @@ func TestValidateChartAxes(t *testing.T) {
 		{
 			"no_domain",
 			&render.ChartAxes{
-				AxisTop:         testingLinearChartScale(),
+				AxisTop:         testutils.LinearChartScale(),
 				AxisTopLabel:    "",
-				AxisBottom:      testingLinearChartScale(),
+				AxisBottom:      testutils.LinearChartScale(),
 				AxisBottomLabel: "",
 				AxisLeft:        nil,
 				AxisLeftLabel:   "",
-				AxisRight:       testingScaleWithoutDomain,
+				AxisRight:       testutils.BandChartScaleWithoutDomain(),
 				AxisRightLabel:  "",
 			},
 			nil,
@@ -221,13 +167,13 @@ func TestValidateChartAxes(t *testing.T) {
 		{
 			"no_numeric_domain",
 			&render.ChartAxes{
-				AxisTop:         testingLinearChartScale(),
+				AxisTop:         testutils.LinearChartScale(),
 				AxisTopLabel:    "",
-				AxisBottom:      testingLinearChartScale(),
+				AxisBottom:      testutils.LinearChartScale(),
 				AxisBottomLabel: "",
 				AxisLeft:        nil,
 				AxisLeftLabel:   "",
-				AxisRight:       testingScaleWithoutNumericDomain,
+				AxisRight:       testutils.LinearChartScaleWithoutNumericDomain(),
 				AxisRightLabel:  "",
 			},
 			nil,
@@ -236,13 +182,13 @@ func TestValidateChartAxes(t *testing.T) {
 		{
 			"no_categories_domain",
 			&render.ChartAxes{
-				AxisTop:         testingLinearChartScale(),
+				AxisTop:         testutils.LinearChartScale(),
 				AxisTopLabel:    "",
-				AxisBottom:      testingLinearChartScale(),
+				AxisBottom:      testutils.LinearChartScale(),
 				AxisBottomLabel: "",
 				AxisLeft:        nil,
 				AxisLeftLabel:   "",
-				AxisRight:       testingScaleWithoutCategoriesDomain,
+				AxisRight:       testutils.BandChartScaleWithoutCategoriesDomain(),
 				AxisRightLabel:  "",
 			},
 			nil,
