@@ -1,7 +1,6 @@
 package apitorenderer
 
 import (
-	"errors"
 	"fmt"
 
 	"google.golang.org/protobuf/types/known/wrapperspb"
@@ -20,9 +19,6 @@ const (
 )
 
 var (
-	// ErrChartMarginsAreNotSpecified contains error message about not specified chart margins.
-	ErrChartMarginsAreNotSpecified = errors.New("chart margins are not specified")
-
 	// ErrChartTopMarginIsTooBig contains error message about too big chart top margin.
 	ErrChartTopMarginIsTooBig = fmt.Errorf("chart max top margin is %d", chartMarginMax)
 
@@ -51,7 +47,12 @@ var (
 // ValidateChartMargins check if every chart margin value is specified and in acceptable range.
 func ValidateChartMargins(chartMargins *render.ChartMargins) (*render.ChartMargins, error) {
 	if chartMargins == nil {
-		return nil, ErrChartMarginsAreNotSpecified
+		return &render.ChartMargins{
+			MarginTop:    &wrapperspb.Int32Value{Value: marginTopDefault},
+			MarginBottom: &wrapperspb.Int32Value{Value: marginBottomDefault},
+			MarginLeft:   &wrapperspb.Int32Value{Value: marginLeftDefault},
+			MarginRight:  &wrapperspb.Int32Value{Value: marginRightDefault},
+		}, nil
 	}
 
 	chartMargins, err := validateTopMargin(chartMargins)
