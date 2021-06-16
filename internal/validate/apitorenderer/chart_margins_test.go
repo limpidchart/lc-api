@@ -159,8 +159,13 @@ func TestValidateChartMargins(t *testing.T) {
 		{
 			"no_margins",
 			nil,
+			&render.ChartMargins{
+				MarginTop:    &wrapperspb.Int32Value{Value: 90},
+				MarginBottom: &wrapperspb.Int32Value{Value: 50},
+				MarginLeft:   &wrapperspb.Int32Value{Value: 60},
+				MarginRight:  &wrapperspb.Int32Value{Value: 40},
+			},
 			nil,
-			apitorenderer.ErrChartMarginsAreNotSpecified,
 		},
 		{
 			"default_top_margin",
