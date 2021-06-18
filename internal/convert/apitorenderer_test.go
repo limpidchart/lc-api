@@ -32,7 +32,7 @@ func TestCreateChartRequestToRenderChartRequest(t *testing.T) {
 			AxisTopLabel:    "",
 			AxisBottom:      testutils.BandChartScale(),
 			AxisBottomLabel: "Categories",
-			AxisLeft:        testutils.LinearChartScaleWithDefaults(),
+			AxisLeft:        testutils.LinearChartScaleWithDefaultsAndInvertedRanges(),
 			AxisLeftLabel:   "Values",
 			AxisRight:       nil,
 			AxisRightLabel:  "",

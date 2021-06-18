@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"google.golang.org/protobuf/types/known/wrapperspb"
 
 	"github.com/limpidchart/lc-api/internal/render/github.com/limpidchart/lc-proto/render/v0"
 	"github.com/limpidchart/lc-api/internal/testutils"
@@ -17,6 +18,8 @@ func TestValidateChartAxes(t *testing.T) {
 	tt := []struct {
 		name              string
 		initialChartAxes  *render.ChartAxes
+		chartSizes        *render.ChartSizes
+		chartMargins      *render.ChartMargins
 		expectedChartAxes *render.ChartAxes
 		expectedErr       error
 	}{
@@ -32,6 +35,8 @@ func TestValidateChartAxes(t *testing.T) {
 				AxisRight:       testutils.BandChartScale(),
 				AxisRightLabel:  "right",
 			},
+			nil,
+			nil,
 			&render.ChartAxes{
 				AxisTop:         testutils.LinearChartScaleWithDefaults(),
 				AxisTopLabel:    "top",
@@ -49,19 +54,21 @@ func TestValidateChartAxes(t *testing.T) {
 			&render.ChartAxes{
 				AxisTop:         nil,
 				AxisTopLabel:    "",
-				AxisBottom:      testutils.LinearChartScale(),
+				AxisBottom:      testutils.BandChartScale(),
 				AxisBottomLabel: "",
-				AxisLeft:        testutils.BandChartScale(),
+				AxisLeft:        testutils.LinearChartScale(),
 				AxisLeftLabel:   "",
 				AxisRight:       nil,
 				AxisRightLabel:  "",
 			},
+			nil,
+			nil,
 			&render.ChartAxes{
 				AxisTop:         nil,
 				AxisTopLabel:    "",
-				AxisBottom:      testutils.LinearChartScaleWithDefaults(),
+				AxisBottom:      testutils.BandChartScale(),
 				AxisBottomLabel: "",
-				AxisLeft:        testutils.BandChartScale(),
+				AxisLeft:        testutils.LinearChartScaleWithDefaultsAndInvertedRanges(),
 				AxisLeftLabel:   "",
 				AxisRight:       nil,
 				AxisRightLabel:  "",
@@ -70,6 +77,8 @@ func TestValidateChartAxes(t *testing.T) {
 		},
 		{
 			"no_axes",
+			nil,
+			nil,
 			nil,
 			nil,
 			apitorenderer.ErrChartAxesAreNotSpecified,
@@ -87,7 +96,43 @@ func TestValidateChartAxes(t *testing.T) {
 				AxisRightLabel:  "",
 			},
 			nil,
+			nil,
+			nil,
 			apitorenderer.ErrChartTopOrBottomAxisShouldBeSpecified,
+		},
+		{
+			"default_ranges",
+			&render.ChartAxes{
+				AxisTop:         nil,
+				AxisTopLabel:    "",
+				AxisBottom:      testutils.BandChartScaleWithoutRanges(),
+				AxisBottomLabel: "niz",
+				AxisLeft:        testutils.LinearChartScaleWithoutRanges(),
+				AxisLeftLabel:   "levo",
+				AxisRight:       nil,
+				AxisRightLabel:  "",
+			},
+			&render.ChartSizes{
+				Width:  &wrapperspb.Int32Value{Value: 1200},
+				Height: &wrapperspb.Int32Value{Value: 1800},
+			},
+			&render.ChartMargins{
+				MarginTop:    &wrapperspb.Int32Value{Value: 10},
+				MarginBottom: &wrapperspb.Int32Value{Value: 20},
+				MarginLeft:   &wrapperspb.Int32Value{Value: 25},
+				MarginRight:  &wrapperspb.Int32Value{Value: 28},
+			},
+			&render.ChartAxes{
+				AxisTop:         nil,
+				AxisTopLabel:    "",
+				AxisBottom:      testutils.BandChartScaleWithRanges(0, 1200-25-28),
+				AxisBottomLabel: "niz",
+				AxisLeft:        testutils.LinearChartScaleWithRangesAndPaddings(1800-10-20, 0),
+				AxisLeftLabel:   "levo",
+				AxisRight:       nil,
+				AxisRightLabel:  "",
+			},
+			nil,
 		},
 		{
 			"no_left_and_right",
@@ -101,6 +146,8 @@ func TestValidateChartAxes(t *testing.T) {
 				AxisRight:       nil,
 				AxisRightLabel:  "",
 			},
+			nil,
+			nil,
 			nil,
 			apitorenderer.ErrChartLeftOrRightAxisShouldBeSpecified,
 		},
@@ -117,6 +164,8 @@ func TestValidateChartAxes(t *testing.T) {
 				AxisRightLabel:  "r",
 			},
 			nil,
+			nil,
+			nil,
 			apitorenderer.ErrChartAxisKindShouldBeSpecified,
 		},
 		{
@@ -131,6 +180,8 @@ func TestValidateChartAxes(t *testing.T) {
 				AxisRight:       testutils.LinearChartScale(),
 				AxisRightLabel:  "r",
 			},
+			nil,
+			nil,
 			nil,
 			apitorenderer.ErrChartTopAndBottomAxesKindsShouldBeEqual,
 		},
@@ -147,6 +198,8 @@ func TestValidateChartAxes(t *testing.T) {
 				AxisRightLabel:  "",
 			},
 			nil,
+			nil,
+			nil,
 			apitorenderer.ErrChartLeftAndRightAxesKindsShouldBeEqual,
 		},
 		{
@@ -161,6 +214,8 @@ func TestValidateChartAxes(t *testing.T) {
 				AxisRight:       testutils.BandChartScaleWithoutDomain(),
 				AxisRightLabel:  "",
 			},
+			nil,
+			nil,
 			nil,
 			apitorenderer.ErrChartScaleDomainShouldBeSpecified,
 		},
@@ -177,6 +232,8 @@ func TestValidateChartAxes(t *testing.T) {
 				AxisRightLabel:  "",
 			},
 			nil,
+			nil,
+			nil,
 			apitorenderer.ErrChartLinearScaleDomainShouldBeSpecified,
 		},
 		{
@@ -192,6 +249,8 @@ func TestValidateChartAxes(t *testing.T) {
 				AxisRightLabel:  "",
 			},
 			nil,
+			nil,
+			nil,
 			apitorenderer.ErrChartBandScaleDomainShouldBeSpecified,
 		},
 	}
@@ -200,7 +259,7 @@ func TestValidateChartAxes(t *testing.T) {
 		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
-			actualChartAxes, actualErr := apitorenderer.ValidateChartAxes(tc.initialChartAxes)
+			actualChartAxes, actualErr := apitorenderer.ValidateChartAxes(tc.initialChartAxes, tc.chartSizes, tc.chartMargins)
 			if tc.expectedChartAxes != nil {
 				assert.Equal(t, tc.expectedChartAxes.AxisTop, actualChartAxes.AxisTop)
 				assert.Equal(t, tc.expectedChartAxes.AxisBottom, actualChartAxes.AxisBottom)

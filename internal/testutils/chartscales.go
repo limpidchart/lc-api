@@ -21,6 +21,22 @@ func BandChartScale() *render.ChartScale {
 	}
 }
 
+func BandChartScaleWithRanges(rangeStart, rangeEnd int32) *render.ChartScale {
+	res := BandChartScale()
+	res.RangeStart = &wrapperspb.Int32Value{Value: rangeStart}
+	res.RangeEnd = &wrapperspb.Int32Value{Value: rangeEnd}
+
+	return res
+}
+
+func BandChartScaleWithoutRanges() *render.ChartScale {
+	res := BandChartScale()
+	res.RangeStart = nil
+	res.RangeEnd = nil
+
+	return res
+}
+
 func BandChartScaleWithoutKind() *render.ChartScale {
 	res := BandChartScale()
 	res.Kind = render.ChartScale_UNSPECIFIED_SCALE
@@ -53,8 +69,8 @@ func LinearChartScale() *render.ChartScale {
 	//nolint: gomnd
 	return &render.ChartScale{
 		Kind:       render.ChartScale_LINEAR,
-		RangeStart: &wrapperspb.Int32Value{Value: 0},
-		RangeEnd:   &wrapperspb.Int32Value{Value: 100},
+		RangeStart: &wrapperspb.Int32Value{Value: 11},
+		RangeEnd:   &wrapperspb.Int32Value{Value: 111},
 		Domain: &render.ChartScale_DomainNumeric{
 			DomainNumeric: &render.DomainNumeric{
 				Start: 0,
@@ -67,6 +83,28 @@ func LinearChartScale() *render.ChartScale {
 	}
 }
 
+func LinearChartScaleWithoutRanges() *render.ChartScale {
+	res := LinearChartScale()
+	res.RangeStart = nil
+	res.RangeEnd = nil
+
+	return res
+}
+
+func LinearChartScaleWithRangesAndPaddings(rangeStart, rangeEnd int32) *render.ChartScale {
+	res := LinearChartScale()
+	res.RangeStart = &wrapperspb.Int32Value{Value: rangeStart}
+	res.RangeEnd = &wrapperspb.Int32Value{Value: rangeEnd}
+
+	//nolint: gomnd
+	res.InnerPadding = &wrapperspb.FloatValue{Value: 0.1}
+
+	//nolint: gomnd
+	res.OuterPadding = &wrapperspb.FloatValue{Value: 0.1}
+
+	return res
+}
+
 func LinearChartScaleWithDefaults() *render.ChartScale {
 	res := LinearChartScale()
 
@@ -75,6 +113,13 @@ func LinearChartScaleWithDefaults() *render.ChartScale {
 
 	//nolint: gomnd
 	res.OuterPadding = &wrapperspb.FloatValue{Value: 0.1}
+
+	return res
+}
+
+func LinearChartScaleWithDefaultsAndInvertedRanges() *render.ChartScale {
+	res := LinearChartScaleWithDefaults()
+	res.RangeStart, res.RangeEnd = res.RangeEnd, res.RangeStart
 
 	return res
 }
