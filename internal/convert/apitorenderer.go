@@ -19,13 +19,14 @@ func CreateChartRequestToRenderChartRequest(request *render.CreateChartRequest) 
 		return nil, fmt.Errorf("unable to validates chart margins: %w", err)
 	}
 
-	chartAxes, err := apitorenderer.ValidateChartAxes(request.Axes)
+	chartAxes, err := apitorenderer.ValidateChartAxes(request.Axes, request.Sizes, request.Margins)
 	if err != nil {
 		return nil, fmt.Errorf("unable to validates chart axes: %w", err)
 	}
 
 	hScale := selectHorizontalScale(chartAxes)
 	vScale := selectVerticalScale(chartAxes)
+
 	categoriesCount := getCategoriesCount(hScale, vScale)
 
 	chartViews, err := apitorenderer.ValidateChartViews(request.Views, categoriesCount, hScale.Kind, vScale.Kind)
