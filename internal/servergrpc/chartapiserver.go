@@ -21,6 +21,7 @@ import (
 
 const rendererServiceCfg = `{"loadBalancingPolicy":"round_robin"}`
 
+// ErrCreateChartRequestCancelled contains error message about cancelled create chart request.
 var ErrCreateChartRequestCancelled = errors.New("create chart request is cancelled")
 
 // Server implements render.ChartAPIServer.
