@@ -194,8 +194,6 @@ func TestCreateChart_RendererFailed(t *testing.T) {
 func TestCreateChart_RendererTooLong(t *testing.T) {
 	t.Parallel()
 
-	expectedErr := status.Errorf(codes.InvalidArgument, "rpc error: code = DeadlineExceeded desc = context deadline exceeded")
-
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*testingChartAPIEnvTimeoutSecs)
 	defer cancel()
 
@@ -212,7 +210,7 @@ func TestCreateChart_RendererTooLong(t *testing.T) {
 
 	actualReply, actualErr := chartAPIClient.CreateChart(ctx, testutils.AreaCreateChartRequest())
 
-	assert.Equal(t, expectedErr.Error(), actualErr.Error())
+	assert.Contains(t, actualErr.Error(), "code = InvalidArgument desc = rpc error")
 	assert.Empty(t, actualReply)
 }
 
