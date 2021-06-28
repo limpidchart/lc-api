@@ -2,10 +2,12 @@ package main
 
 import (
 	"context"
-	"log"
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
+
+	"github.com/rs/zerolog"
 
 	"github.com/limpidchart/lc-api/internal/config"
 	"github.com/limpidchart/lc-api/internal/servergrpc"
@@ -24,14 +26,24 @@ func main() {
 	errs := make(chan error)
 	ctx, cancel := context.WithCancel(context.Background())
 
-	catchSignals(ctx, cancel)
+	log := zerolog.New(os.Stderr)
 
-	log.Println("Starting lc-api")
+	catchSignals(ctx, &log, cancel)
 
-	chartAPIServer, err := servergrpc.NewServer(ctx, cfg.API, cfg.Renderer)
+	log.Info().
+		Time(zerolog.TimestampFieldName, time.Now().UTC()).
+		Msg("Starting lc-api")
+
+	chartAPIServer, err := servergrpc.NewServer(ctx, &log, cfg.API, cfg.Renderer)
 	if err != nil {
 		cancel()
-		log.Fatalf("Unable to configure lc-api gRPC server: %s", err)
+
+		log.Error().
+			Time(zerolog.TimestampFieldName, time.Now().UTC()).
+			Err(err).
+			Msg("Unable to configure lc-api gRPC server")
+
+		os.Exit(1)
 	}
 
 	go func() {
@@ -40,18 +52,26 @@ func main() {
 		}
 	}()
 
-	log.Printf("Server is started, version: %s, addr: %s", Version, cfg.API.Address)
+	log.Info().
+		Time(zerolog.TimestampFieldName, time.Now().UTC()).
+		Str("version", Version).
+		Str("addr", cfg.API.Address).
+		Msg("Server is started")
 
 	select {
 	case <-ctx.Done():
 		return
 	case err := <-errs:
+		log.Error().
+			Time(zerolog.TimestampFieldName, time.Now().UTC()).
+			Err(err).
+			Msg("Unable to start lc-api")
+
 		cancel()
-		log.Fatalf("Unable to start lc-api: %s", err)
 	}
 }
 
-func catchSignals(ctx context.Context, cancel context.CancelFunc) {
+func catchSignals(ctx context.Context, log *zerolog.Logger, cancel context.CancelFunc) {
 	done := make(chan os.Signal, 1)
 	signal.Notify(done, syscall.SIGINT, syscall.SIGTERM)
 
@@ -61,7 +81,10 @@ func catchSignals(ctx context.Context, cancel context.CancelFunc) {
 			case <-ctx.Done():
 				return
 			case <-done:
-				log.Println("Got signal, exiting")
+				log.Info().
+					Time(zerolog.TimestampFieldName, time.Now().UTC()).
+					Msg("Got signal, exiting")
+
 				cancel()
 			}
 		}

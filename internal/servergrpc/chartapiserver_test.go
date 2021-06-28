@@ -3,9 +3,11 @@ package servergrpc_test
 import (
 	"context"
 	"fmt"
+	"os"
 	"testing"
 	"time"
 
+	"github.com/rs/zerolog"
 	"github.com/stretchr/testify/assert"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -56,8 +58,11 @@ func newTestingChartAPIEnv(ctx context.Context, t *testing.T, opts testingChartA
 		}
 	}()
 
+	log := zerolog.New(os.Stderr)
+
 	chartAPIServer, err := servergrpc.NewServer(
 		ctx,
+		&log,
 		config.APIConfig{
 			Address:                tcputils.LocalhostWithRandomPort,
 			ShutdownTimeoutSeconds: testingChartAPIEnvShutdownSecs,
