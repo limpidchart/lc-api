@@ -11,17 +11,17 @@ import (
 func CreateChartRequestToRenderChartRequest(request *render.CreateChartRequest) (*render.RenderChartRequest, error) {
 	chartSizes, err := apitorenderer.ValidateChartSizes(request.Sizes)
 	if err != nil {
-		return nil, fmt.Errorf("unable to validates chart sizes: %w", err)
+		return nil, fmt.Errorf("unable to validate chart sizes: %w", err)
 	}
 
 	chartMargins, err := apitorenderer.ValidateChartMargins(request.Margins)
 	if err != nil {
-		return nil, fmt.Errorf("unable to validates chart margins: %w", err)
+		return nil, fmt.Errorf("unable to validate chart margins: %w", err)
 	}
 
 	chartAxes, err := apitorenderer.ValidateChartAxes(request.Axes, request.Sizes, request.Margins)
 	if err != nil {
-		return nil, fmt.Errorf("unable to validates chart axes: %w", err)
+		return nil, fmt.Errorf("unable to validate chart axes: %w", err)
 	}
 
 	hScale := selectHorizontalScale(chartAxes)
@@ -31,7 +31,7 @@ func CreateChartRequestToRenderChartRequest(request *render.CreateChartRequest) 
 
 	chartViews, err := apitorenderer.ValidateChartViews(request.Views, categoriesCount, hScale.Kind, vScale.Kind)
 	if err != nil {
-		return nil, fmt.Errorf("unable to validates chart views: %w", err)
+		return nil, fmt.Errorf("unable to validate chart views: %w", err)
 	}
 
 	return &render.RenderChartRequest{

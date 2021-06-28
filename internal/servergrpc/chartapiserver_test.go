@@ -137,12 +137,12 @@ func TestCreateChart_ConvertErrs(t *testing.T) {
 		{
 			"bad_sizes",
 			testutils.BadSizesCreateChartRequest(),
-			status.Errorf(codes.InvalidArgument, "unable to validates chart sizes: chart size max width is 100000"),
+			status.Errorf(codes.InvalidArgument, "unable to validate chart sizes: chart size max width is 100000"),
 		},
 		{
 			"bad_margins",
 			testutils.BadMarginsCreateChartRequest(),
-			status.Errorf(codes.InvalidArgument, "unable to validates chart margins: chart min right margin is 0"),
+			status.Errorf(codes.InvalidArgument, "unable to validate chart margins: chart min right margin is 0"),
 		},
 	}
 
