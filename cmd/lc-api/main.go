@@ -17,7 +17,7 @@ import (
 // It should be provided via build tags:
 //   git_tag=$(git describe --tags --abbrev=0)
 //   version=${git_tag#v}
-//   CGO_ENABLED=0 go build -o ./bin/lc-api -ldflags="-X main.Version=${version}" -v ./cmd/lc-api/lc-api.go
+//   CGO_ENABLED=0 go build -o ./bin/lc-api -ldflags="-X main.Version=${version}" -v ./cmd/lc-api/main.go
 //nolint: gochecknoglobals
 var Version string
 
