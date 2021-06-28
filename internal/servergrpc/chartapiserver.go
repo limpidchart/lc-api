@@ -58,7 +58,7 @@ func NewServer(ctx context.Context, log *zerolog.Logger, apiCfg config.APIConfig
 	}
 
 	grpcServer := grpc.NewServer(
-		grpc.ChainUnaryInterceptor(requestIDInterceptor(), loggerInterceptor(log)),
+		grpc.ChainUnaryInterceptor(recoverInterceptor(), requestIDInterceptor(), loggerInterceptor(log)),
 	)
 
 	//nolint: exhaustivestruct
