@@ -4,11 +4,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"log"
 	"net"
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/rs/zerolog"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -27,6 +27,7 @@ var ErrCreateChartRequestCancelled = errors.New("create chart request is cancell
 // Server implements render.ChartAPIServer.
 type Server struct {
 	render.UnimplementedChartAPIServer
+	log                *zerolog.Logger
 	grpcServer         *grpc.Server
 	listener           *net.TCPListener
 	rendererConn       *grpc.ClientConn
@@ -36,7 +37,7 @@ type Server struct {
 }
 
 // NewServer configures needed connections and returns a new Server.
-func NewServer(ctx context.Context, apiCfg config.APIConfig, rendererCfg config.RendererConfig) (*Server, error) {
+func NewServer(ctx context.Context, log *zerolog.Logger, apiCfg config.APIConfig, rendererCfg config.RendererConfig) (*Server, error) {
 	listener, err := tcputils.Listener(apiCfg.Address)
 	if err != nil {
 		return nil, fmt.Errorf("failed to start lc-api TCP listener: %w", err)
@@ -56,10 +57,13 @@ func NewServer(ctx context.Context, apiCfg config.APIConfig, rendererCfg config.
 		return nil, fmt.Errorf("failed to create connection to lc-renderer: %w", err)
 	}
 
-	grpcServer := grpc.NewServer()
+	grpcServer := grpc.NewServer(
+		grpc.ChainUnaryInterceptor(requestIDInterceptor(), loggerInterceptor(log)),
+	)
 
 	//nolint: exhaustivestruct
 	chartAPIServer := &Server{
+		log:                log,
 		grpcServer:         grpcServer,
 		shutdownTimeout:    time.Second * time.Duration(apiCfg.ShutdownTimeoutSeconds),
 		listener:           listener,
@@ -93,7 +97,9 @@ func (s *Server) Serve(ctx context.Context) error {
 
 	select {
 	case <-ctx.Done():
-		log.Println("Trying to gracefully stop lc-api gRPC server")
+		s.log.Info().
+			Time(zerolog.TimestampFieldName, time.Now().UTC()).
+			Msg("Trying to gracefully stop lc-api gRPC server")
 
 		stopped := make(chan struct{})
 
@@ -106,12 +112,18 @@ func (s *Server) Serve(ctx context.Context) error {
 		shutdownTimer := time.NewTimer(s.shutdownTimeout)
 		select {
 		case <-stopped:
-			log.Println("Gracefully stopped lc-api gRPC server")
+			s.log.Info().
+				Time(zerolog.TimestampFieldName, time.Now().UTC()).
+				Msg("Gracefully stopped lc-api gRPC server")
+
 			shutdownTimer.Stop()
 
 			return nil
 		case <-shutdownTimer.C:
-			log.Println("Unable to gracefully stop lc-api gRPC server, stopping it immediately")
+			s.log.Warn().
+				Time(zerolog.TimestampFieldName, time.Now().UTC()).
+				Msg("Unable to gracefully stop lc-api gRPC server, stopping it immediately")
+
 			s.grpcServer.Stop()
 
 			return nil
@@ -123,7 +135,7 @@ func (s *Server) Serve(ctx context.Context) error {
 
 // CreateChart implements render.ChartAPIServer.CreateChart.
 func (s *Server) CreateChart(ctx context.Context, req *render.CreateChartRequest) (*render.ChartReply, error) {
-	reqID := uuid.New().String()
+	reqID := getRequestID(ctx)
 	chartID := uuid.New().String()
 	now := time.Now().UTC()
 
