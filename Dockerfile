@@ -1,4 +1,4 @@
-FROM golang:1.16 as builder
+FROM golang:1 as builder
 
 ARG VERSION=unknown
 
@@ -37,4 +37,5 @@ ENV LC_API_RENDERER_REQUEST_TIMEOUT=30
 USER $LC_API_USER
 WORKDIR $LC_API_DIR
 
-CMD ["./lc-api"]
+ENTRYPOINT ["./lc-api"]
+CMD []
