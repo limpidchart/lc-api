@@ -1,0 +1,30 @@
+name: docker-image-release
+
+on:
+  push:
+    tags:
+      - v*
+
+jobs:
+  build-and-publish-release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - id: prep
+        run: |
+          image_tag=${GITHUB_REF##*/}
+          echo "::set-output name=IMAGE_TAG::${image_tag}"
+
+      - uses: docker/login-action@v1
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: docker/build-push-action@v2
+        with:
+          push: true
+          tags: |
+            ghcr.io/limpidchart/lc-api:${{ steps.prep.outputs.IMAGE_TAG }}
+            ghcr.io/limpidchart/lc-api:latest
