@@ -1,6 +1,7 @@
 package apitorenderer_test
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -8,6 +9,7 @@ import (
 	"github.com/limpidchart/lc-api/internal/render/github.com/limpidchart/lc-proto/render/v0"
 	"github.com/limpidchart/lc-api/internal/testutils"
 	"github.com/limpidchart/lc-api/internal/validate/apitorenderer"
+	"github.com/limpidchart/lc-api/internal/validate/rgb"
 )
 
 func TestValidateChartViews(t *testing.T) {
@@ -102,7 +104,7 @@ func TestValidateChartViews(t *testing.T) {
 			render.ChartScale_LINEAR,
 			nil,
 			2,
-			apitorenderer.ErrChartElementColorRGBBadValue,
+			fmt.Errorf("unable to validate rgb chart element color: %w", rgb.ErrChartElementColorRGBBadValue),
 		},
 		{
 			"area_with_bad_scales",
