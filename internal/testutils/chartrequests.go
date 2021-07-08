@@ -4,6 +4,7 @@ import (
 	"google.golang.org/protobuf/types/known/wrapperspb"
 
 	"github.com/limpidchart/lc-api/internal/render/github.com/limpidchart/lc-proto/render/v0"
+	"github.com/limpidchart/lc-api/internal/serverrest/view/v0"
 )
 
 func VerticalBarAndLineCreateChartRequest() *render.CreateChartRequest {
@@ -33,6 +34,45 @@ func VerticalBarAndLineCreateChartRequest() *render.CreateChartRequest {
 		Views: []*render.ChartView{
 			VerticalBarView(),
 			LineView(),
+		},
+	}
+}
+
+func JSONVerticalBarAndLineCreateChartRequest() *view.CreateChartRequest {
+	//nolint: gomnd
+	return &view.CreateChartRequest{
+		Request: struct {
+			Title   string             `json:"title"`
+			Sizes   *view.ChartSizes   `json:"sizes"`
+			Margins *view.ChartMargins `json:"margins"`
+			Axes    *view.ChartAxes    `json:"axes"`
+			Views   []*view.ChartView  `json:"views"`
+		}{
+			Title: "Vertical and line chart",
+			Sizes: &view.ChartSizes{
+				Width:  intToPtr(100),
+				Height: intToPtr(200),
+			},
+			Margins: &view.ChartMargins{
+				MarginTop:    intToPtr(10),
+				MarginBottom: intToPtr(20),
+				MarginLeft:   intToPtr(30),
+				MarginRight:  intToPtr(40),
+			},
+			Axes: &view.ChartAxes{
+				AxisTop:         nil,
+				AxisTopLabel:    "",
+				AxisBottom:      JSONBandChartScale(),
+				AxisBottomLabel: "Categories",
+				AxisLeft:        JSONLinearChartScale(),
+				AxisLeftLabel:   "Values",
+				AxisRight:       nil,
+				AxisRightLabel:  "",
+			},
+			Views: []*view.ChartView{
+				JSONVerticalBarView(),
+				JSONLineView(),
+			},
 		},
 	}
 }
