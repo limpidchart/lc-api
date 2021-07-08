@@ -2,6 +2,7 @@ package apitorenderer
 
 import (
 	"errors"
+	"fmt"
 
 	"google.golang.org/protobuf/types/known/wrapperspb"
 
@@ -12,9 +13,14 @@ const (
 	rangeStartDefault = 0
 
 	paddingDefault = 0.1
+
+	labelMaxLen = 1024
 )
 
 var (
+	// ErrLabelMaxLen contains error message about max label len.
+	ErrLabelMaxLen = fmt.Errorf("label max len is %d", labelMaxLen)
+
 	// ErrChartAxesAreNotSpecified contains error message about not specified chart axes.
 	ErrChartAxesAreNotSpecified = errors.New("chart axes are not specified")
 
@@ -68,6 +74,10 @@ var (
 func ValidateChartAxes(chartAxes *render.ChartAxes, chartSizes *render.ChartSizes, chartMargins *render.ChartMargins) (*render.ChartAxes, error) {
 	if chartAxes == nil {
 		return nil, ErrChartAxesAreNotSpecified
+	}
+
+	if err := validateAxesLabels(chartAxes); err != nil {
+		return nil, err
 	}
 
 	if err := validateTopAndBottomAxesKinds(chartAxes); err != nil {
@@ -306,4 +316,24 @@ func setChartScaleDefaultPaddings(chartScale *render.ChartScale) *render.ChartSc
 	}
 
 	return chartScale
+}
+
+func validateAxesLabels(chartAxes *render.ChartAxes) error {
+	if len(chartAxes.AxisTopLabel) > labelMaxLen {
+		return ErrLabelMaxLen
+	}
+
+	if len(chartAxes.AxisBottomLabel) > labelMaxLen {
+		return ErrLabelMaxLen
+	}
+
+	if len(chartAxes.AxisLeftLabel) > labelMaxLen {
+		return ErrLabelMaxLen
+	}
+
+	if len(chartAxes.AxisRightLabel) > labelMaxLen {
+		return ErrLabelMaxLen
+	}
+
+	return nil
 }

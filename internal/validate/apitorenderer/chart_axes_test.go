@@ -253,6 +253,23 @@ func TestValidateChartAxes(t *testing.T) {
 			nil,
 			apitorenderer.ErrChartBandScaleDomainShouldBeSpecified,
 		},
+		{
+			"too big scale label",
+			&render.ChartAxes{
+				AxisTop:         testutils.LinearChartScale(),
+				AxisTopLabel:    testutils.RandomString(1025),
+				AxisBottom:      testutils.LinearChartScale(),
+				AxisBottomLabel: "b",
+				AxisLeft:        testutils.BandChartScale(),
+				AxisLeftLabel:   "l",
+				AxisRight:       testutils.BandChartScale(),
+				AxisRightLabel:  "r",
+			},
+			nil,
+			nil,
+			nil,
+			apitorenderer.ErrLabelMaxLen,
+		},
 	}
 
 	for _, tc := range tt {
