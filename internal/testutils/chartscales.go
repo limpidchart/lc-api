@@ -4,7 +4,36 @@ import (
 	"google.golang.org/protobuf/types/known/wrapperspb"
 
 	"github.com/limpidchart/lc-api/internal/render/github.com/limpidchart/lc-proto/render/v0"
+	"github.com/limpidchart/lc-api/internal/serverrest/view/v0"
 )
+
+func JSONBandChartScale() *view.ChartScale {
+	//nolint: gomnd
+	return &view.ChartScale{
+		Kind:          "band",
+		RangeStart:    intToPtr(0),
+		RangeEnd:      intToPtr(100),
+		DomainNumeric: nil,
+		DomainCategories: &view.DomainCategories{
+			Categories: []string{"A", "B", "C"},
+		},
+		NoBoundariesOffset: false,
+		InnerPadding:       float32ToPtr(0.2),
+		OuterPadding:       float32ToPtr(0.2),
+	}
+}
+
+func JSONBandChartScaleTwoDomains() *view.ChartScale {
+	res := JSONBandChartScale()
+
+	//nolint: gomnd
+	res.DomainNumeric = &view.DomainNumeric{
+		Start: 1,
+		End:   2,
+	}
+
+	return res
+}
 
 func BandChartScale() *render.ChartScale {
 	//nolint: gomnd
@@ -19,6 +48,20 @@ func BandChartScale() *render.ChartScale {
 		InnerPadding:       &wrapperspb.FloatValue{Value: 0.2},
 		OuterPadding:       &wrapperspb.FloatValue{Value: 0.2},
 	}
+}
+
+func JSONBandChartScaleWithNoBoundariesOffset() *view.ChartScale {
+	res := JSONBandChartScale()
+	res.NoBoundariesOffset = true
+
+	return res
+}
+
+func BandChartScaleWithNoBoundariesOffset() *render.ChartScale {
+	res := BandChartScale()
+	res.NoBoundariesOffset = true
+
+	return res
 }
 
 func BandChartScaleWithRanges(rangeStart, rangeEnd int32) *render.ChartScale {
@@ -63,6 +106,23 @@ func BandChartScaleWithoutDomain() *render.ChartScale {
 	res.Domain = nil
 
 	return res
+}
+
+func JSONLinearChartScale() *view.ChartScale {
+	//nolint: gomnd
+	return &view.ChartScale{
+		Kind:       "linear",
+		RangeStart: intToPtr(11),
+		RangeEnd:   intToPtr(111),
+		DomainNumeric: &view.DomainNumeric{
+			Start: 0,
+			End:   100,
+		},
+		DomainCategories:   nil,
+		NoBoundariesOffset: false,
+		InnerPadding:       nil,
+		OuterPadding:       nil,
+	}
 }
 
 func LinearChartScale() *render.ChartScale {

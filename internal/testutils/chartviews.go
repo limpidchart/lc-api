@@ -4,6 +4,7 @@ import (
 	"google.golang.org/protobuf/types/known/wrapperspb"
 
 	"github.com/limpidchart/lc-api/internal/render/github.com/limpidchart/lc-proto/render/v0"
+	"github.com/limpidchart/lc-api/internal/serverrest/view/v0"
 )
 
 func ColorsDefault() *render.ChartViewColors {
@@ -63,6 +64,77 @@ func HorizontalBarView() *render.ChartView {
 	}
 }
 
+func JSONHorizontalBarView() *view.ChartView {
+	return &view.ChartView{
+		Kind: "horizontal_bar",
+		BarsValues: []*view.BarsValues{
+			{
+				Values: []float32{10, 20},
+				FillColor: &view.ChartElementColor{
+					Hex: "#66b2b2",
+					RGB: nil,
+				},
+				StrokeColor: &view.ChartElementColor{
+					Hex: "#004c4c",
+					RGB: nil,
+				},
+			},
+		},
+		PointsValues:       nil,
+		ScalarValues:       nil,
+		Colors:             nil,
+		BarLabelVisible:    boolToPtr(false),
+		BarLabelPosition:   "end_outside",
+		PointVisible:       nil,
+		PointType:          "",
+		PointLabelVisible:  nil,
+		PointLabelPosition: "",
+	}
+}
+
+func JSONHorizontalBarViewWithScalarAndBarsValues() *view.ChartView {
+	res := JSONHorizontalBarView()
+	res.ScalarValues = &view.ScalarValues{
+		Values: []float32{10, 20},
+	}
+
+	return res
+}
+
+func JSONHorizontalBarViewWithScalarAndPointsValues() *view.ChartView {
+	res := JSONHorizontalBarView()
+	res.BarsValues = nil
+	res.ScalarValues = &view.ScalarValues{
+		Values: []float32{10, 20},
+	}
+	res.PointsValues = &view.PointsValues{
+		Values: [][]float32{{10, 20}},
+	}
+
+	return res
+}
+
+func JSONHorizontalBarViewWithPointsAndBarsValues() *view.ChartView {
+	res := JSONHorizontalBarView()
+	res.PointsValues = &view.PointsValues{
+		Values: [][]float32{{10, 20}},
+	}
+
+	return res
+}
+
+func JSONHorizontalBarViewWithAllValues() *view.ChartView {
+	res := JSONHorizontalBarView()
+	res.ScalarValues = &view.ScalarValues{
+		Values: []float32{10, 20},
+	}
+	res.PointsValues = &view.PointsValues{
+		Values: [][]float32{{10, 20}},
+	}
+
+	return res
+}
+
 func HorizontalBarViewWithDefaults() *render.ChartView {
 	res := HorizontalBarView()
 	res.Colors = ColorsDefault()
@@ -70,6 +142,14 @@ func HorizontalBarViewWithDefaults() *render.ChartView {
 	res.PointType = render.ChartView_CIRCLE
 	res.PointLabelVisible = &wrapperspb.BoolValue{Value: true}
 	res.PointLabelPosition = render.ChartView_TOP
+
+	return res
+}
+
+func HorizontalBarViewWithBoolDefaults() *render.ChartView {
+	res := HorizontalBarView()
+	res.PointVisible = &wrapperspb.BoolValue{Value: true}
+	res.PointLabelVisible = &wrapperspb.BoolValue{Value: true}
 
 	return res
 }
@@ -105,6 +185,45 @@ func AreaView() *render.ChartView {
 	}
 }
 
+func JSONAreaView() *view.ChartView {
+	return &view.ChartView{
+		Kind:         "area",
+		BarsValues:   nil,
+		PointsValues: nil,
+		ScalarValues: &view.ScalarValues{
+			Values: []float32{1010, 2100},
+		},
+		Colors: &view.ChartViewColors{
+			FillColor: &view.ChartElementColor{
+				Hex: "#71c7ee",
+				RGB: nil,
+			},
+			StrokeColor: &view.ChartElementColor{
+				Hex: "#005072",
+				RGB: nil,
+			},
+			PointFillColor:   nil,
+			PointStrokeColor: nil,
+		},
+		BarLabelVisible:    nil,
+		BarLabelPosition:   "",
+		PointVisible:       boolToPtr(false),
+		PointType:          "x",
+		PointLabelVisible:  boolToPtr(false),
+		PointLabelPosition: "top",
+	}
+}
+
+func JSONAreaViewBadPointsCount() *view.ChartView {
+	res := JSONAreaView()
+	res.ScalarValues = nil
+	res.PointsValues = &view.PointsValues{
+		Values: [][]float32{{10, 20, 30}, {40}},
+	}
+
+	return res
+}
+
 func AreaViewWithDefaults() *render.ChartView {
 	res := AreaView()
 	res.Colors = ColorsDefault()
@@ -120,6 +239,13 @@ func AreaViewWithDefaults() *render.ChartView {
 	}
 	res.BarLabelVisible = &wrapperspb.BoolValue{Value: true}
 	res.BarLabelPosition = render.ChartView_CENTER
+
+	return res
+}
+
+func AreaViewWithBoolDefaults() *render.ChartView {
+	res := AreaView()
+	res.BarLabelVisible = &wrapperspb.BoolValue{Value: true}
 
 	return res
 }
@@ -197,10 +323,52 @@ func LineView() *render.ChartView {
 	}
 }
 
+func JSONLineView() *view.ChartView {
+	return &view.ChartView{
+		Kind:         "line",
+		BarsValues:   nil,
+		PointsValues: nil,
+		ScalarValues: &view.ScalarValues{
+			Values: []float32{40, 50, 60},
+		},
+		Colors: &view.ChartViewColors{
+			FillColor: &view.ChartElementColor{
+				Hex: "#71c7ec",
+				RGB: nil,
+			},
+			StrokeColor: &view.ChartElementColor{
+				Hex: "#005073",
+				RGB: nil,
+			},
+			PointFillColor: &view.ChartElementColor{
+				Hex: "#71c7ec",
+				RGB: nil,
+			},
+			PointStrokeColor: &view.ChartElementColor{
+				Hex: "#005073",
+				RGB: nil,
+			},
+		},
+		BarLabelVisible:    nil,
+		BarLabelPosition:   "",
+		PointVisible:       boolToPtr(true),
+		PointType:          "x",
+		PointLabelVisible:  boolToPtr(true),
+		PointLabelPosition: "left",
+	}
+}
+
 func LineViewWithDefaults() *render.ChartView {
 	res := LineView()
 	res.BarLabelVisible = &wrapperspb.BoolValue{Value: true}
 	res.BarLabelPosition = render.ChartView_CENTER
+
+	return res
+}
+
+func LineViewWithBoolDefaults() *render.ChartView {
+	res := LineView()
+	res.BarLabelVisible = &wrapperspb.BoolValue{Value: true}
 
 	return res
 }
@@ -237,6 +405,34 @@ func VerticalBarView() *render.ChartView {
 	}
 }
 
+func JSONVerticalBarView() *view.ChartView {
+	return &view.ChartView{
+		Kind: "vertical_bar",
+		BarsValues: []*view.BarsValues{
+			{
+				Values: []float32{11, 22, 33},
+				FillColor: &view.ChartElementColor{
+					Hex: "#fff4e6",
+					RGB: nil,
+				},
+				StrokeColor: &view.ChartElementColor{
+					Hex: "#3c2f2f",
+					RGB: nil,
+				},
+			},
+		},
+		PointsValues:       nil,
+		ScalarValues:       nil,
+		Colors:             nil,
+		BarLabelVisible:    boolToPtr(true),
+		BarLabelPosition:   "end_inside",
+		PointVisible:       nil,
+		PointType:          "",
+		PointLabelVisible:  nil,
+		PointLabelPosition: "",
+	}
+}
+
 func VerticalBarViewWithDefaults() *render.ChartView {
 	res := VerticalBarView()
 	res.Colors = ColorsDefault()
@@ -244,6 +440,16 @@ func VerticalBarViewWithDefaults() *render.ChartView {
 	res.PointType = render.ChartView_CIRCLE
 	res.PointLabelVisible = &wrapperspb.BoolValue{Value: true}
 	res.PointLabelPosition = render.ChartView_TOP
+
+	return res
+}
+
+func VerticalBarViewWithBoolDefaultsAndEndInsideLabel() *render.ChartView {
+	res := VerticalBarView()
+	res.BarLabelVisible = &wrapperspb.BoolValue{Value: true}
+	res.BarLabelPosition = render.ChartView_END_INSIDE
+	res.PointVisible = &wrapperspb.BoolValue{Value: true}
+	res.PointLabelVisible = &wrapperspb.BoolValue{Value: true}
 
 	return res
 }
