@@ -1,6 +1,7 @@
 package view
 
 // ChartView represents options to configure chart view.
+//nolint: govet
 type ChartView struct {
 	// Kind represents view kind.
 	// Can be one of:
@@ -15,7 +16,7 @@ type ChartView struct {
 
 	// BarsValues represents bars values.
 	// It can be used with horizontal or vertical bar view.
-	BarsValues *BarsValues `json:"bars_values,omitempty"`
+	BarsValues []*BarsValues `json:"bars_values,omitempty"`
 
 	// PointsValues represents points values.
 	// It can be used with scatter view only.
