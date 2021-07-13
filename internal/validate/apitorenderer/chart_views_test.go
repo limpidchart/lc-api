@@ -27,37 +27,40 @@ func TestValidateChartViews(t *testing.T) {
 	}{
 		{
 			"vertical_bar_and_line",
-			[]*render.ChartView{testutils.VerticalBarView(), testutils.LineView()},
+			[]*render.ChartView{testutils.NewVerticalBarView().Unembed(), testutils.NewLineView().Unembed()},
 			render.ChartScale_BAND,
 			render.ChartScale_LINEAR,
-			[]*render.ChartView{testutils.VerticalBarViewWithDefaults(), testutils.LineViewWithDefaults()},
+			[]*render.ChartView{
+				testutils.NewVerticalBarView().SetDefaultColors().SetDefaultPointParams().Unembed(),
+				testutils.NewLineView().SetDefaultColors().SetDefaultBarParams().Unembed(),
+			},
 			3,
 			nil,
 		},
 		{
 			"area",
-			[]*render.ChartView{testutils.AreaView()},
+			[]*render.ChartView{testutils.NewAreaView().Unembed()},
 			render.ChartScale_BAND,
 			render.ChartScale_LINEAR,
-			[]*render.ChartView{testutils.AreaViewWithDefaults()},
+			[]*render.ChartView{testutils.NewAreaView().SetDefaultColors().SetDefaultBarParams().Unembed()},
 			2,
 			nil,
 		},
 		{
 			"horizontal_bar",
-			[]*render.ChartView{testutils.HorizontalBarView()},
+			[]*render.ChartView{testutils.NewHorizontalBarView().Unembed()},
 			render.ChartScale_LINEAR,
 			render.ChartScale_BAND,
-			[]*render.ChartView{testutils.HorizontalBarViewWithDefaults()},
+			[]*render.ChartView{testutils.NewHorizontalBarView().SetDefaultColors().SetDefaultPointParams().Unembed()},
 			0,
 			nil,
 		},
 		{
 			"scatter",
-			[]*render.ChartView{testutils.ScatterView()},
+			[]*render.ChartView{testutils.NewScatterView().Unembed()},
 			render.ChartScale_LINEAR,
 			render.ChartScale_LINEAR,
-			[]*render.ChartView{testutils.ScatterViewWithDefaults()},
+			[]*render.ChartView{testutils.NewScatterView().SetDefaultColors().SetDefaultBarParams().Unembed()},
 			0,
 			nil,
 		},
@@ -72,7 +75,7 @@ func TestValidateChartViews(t *testing.T) {
 		},
 		{
 			"unknown_view_kind",
-			[]*render.ChartView{testutils.UnspecifiedKindView()},
+			[]*render.ChartView{testutils.NewHorizontalBarView().UnsetKind().Unembed()},
 			render.ChartScale_LINEAR,
 			render.ChartScale_LINEAR,
 			nil,
@@ -81,7 +84,7 @@ func TestValidateChartViews(t *testing.T) {
 		},
 		{
 			"view_without_values",
-			[]*render.ChartView{testutils.HorizontalBarViewWithoutValues()},
+			[]*render.ChartView{testutils.NewHorizontalBarView().UnsetValues().Unembed()},
 			render.ChartScale_LINEAR,
 			render.ChartScale_BAND,
 			nil,
@@ -90,7 +93,7 @@ func TestValidateChartViews(t *testing.T) {
 		},
 		{
 			"bad_categories_count",
-			[]*render.ChartView{testutils.AreaView()},
+			[]*render.ChartView{testutils.NewAreaView().Unembed()},
 			render.ChartScale_BAND,
 			render.ChartScale_LINEAR,
 			nil,
@@ -99,7 +102,7 @@ func TestValidateChartViews(t *testing.T) {
 		},
 		{
 			"bad_rgb_value",
-			[]*render.ChartView{testutils.AreaViewBadRGBColor()},
+			[]*render.ChartView{testutils.NewAreaView().SetBadFillRGBColor().Unembed()},
 			render.ChartScale_BAND,
 			render.ChartScale_LINEAR,
 			nil,
@@ -108,7 +111,7 @@ func TestValidateChartViews(t *testing.T) {
 		},
 		{
 			"area_with_bad_scales",
-			[]*render.ChartView{testutils.AreaView()},
+			[]*render.ChartView{testutils.NewAreaView().Unembed()},
 			render.ChartScale_LINEAR,
 			render.ChartScale_LINEAR,
 			nil,
@@ -117,7 +120,7 @@ func TestValidateChartViews(t *testing.T) {
 		},
 		{
 			"horizontal_bar_with_bad_scales",
-			[]*render.ChartView{testutils.HorizontalBarView()},
+			[]*render.ChartView{testutils.NewHorizontalBarView().Unembed()},
 			render.ChartScale_LINEAR,
 			render.ChartScale_LINEAR,
 			nil,
@@ -126,7 +129,7 @@ func TestValidateChartViews(t *testing.T) {
 		},
 		{
 			"line_with_bad_scales",
-			[]*render.ChartView{testutils.LineView()},
+			[]*render.ChartView{testutils.NewLineView().Unembed()},
 			render.ChartScale_LINEAR,
 			render.ChartScale_LINEAR,
 			nil,
@@ -135,7 +138,7 @@ func TestValidateChartViews(t *testing.T) {
 		},
 		{
 			"scatter_with_bad_scales",
-			[]*render.ChartView{testutils.ScatterView()},
+			[]*render.ChartView{testutils.NewScatterView().Unembed()},
 			render.ChartScale_LINEAR,
 			render.ChartScale_BAND,
 			nil,
@@ -144,7 +147,7 @@ func TestValidateChartViews(t *testing.T) {
 		},
 		{
 			"vertical_bar_with_bad_scales",
-			[]*render.ChartView{testutils.VerticalBarView()},
+			[]*render.ChartView{testutils.NewVerticalBarView().Unembed()},
 			render.ChartScale_LINEAR,
 			render.ChartScale_BAND,
 			nil,
@@ -159,7 +162,7 @@ func TestValidateChartViews(t *testing.T) {
 			t.Parallel()
 			actualChartViews, actualErr := apitorenderer.ValidateChartViews(tc.chartViews, tc.categoriesCount, tc.hScaleKind, tc.vScaleKind)
 			if tc.expectedChartViews != nil {
-				assert.ElementsMatch(t, tc.expectedChartViews, actualChartViews)
+				assert.Equal(t, tc.expectedChartViews, actualChartViews)
 			}
 			assert.Equal(t, tc.expectedErr, actualErr)
 		})

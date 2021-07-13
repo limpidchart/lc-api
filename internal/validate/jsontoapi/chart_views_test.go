@@ -23,14 +23,14 @@ func TestChartViewFromJSON(t *testing.T) {
 	}{
 		{
 			"horizontal_bar",
-			testutils.JSONHorizontalBarView(),
-			testutils.HorizontalBarViewWithBoolDefaults(),
+			testutils.NewJSONHorizontalBarView().Unembed(),
+			testutils.NewHorizontalBarView().SetDefaultPointBools().Unembed(),
 			nil,
 		},
 		{
 			"area",
-			testutils.JSONAreaView(),
-			testutils.AreaViewWithBoolDefaults(),
+			testutils.NewJSONAreaView().Unembed(),
+			testutils.NewAreaView().SetDefaultBarBools().Unembed(),
 			nil,
 		},
 		{
@@ -41,31 +41,31 @@ func TestChartViewFromJSON(t *testing.T) {
 		},
 		{
 			"scalar_and_bars_values",
-			testutils.JSONHorizontalBarViewWithScalarAndBarsValues(),
+			testutils.NewJSONHorizontalBarView().SetScalarValues().Unembed(),
 			nil,
 			jsontoapi.ErrOnlyOneOfValuesKindShouldBeSpecified,
 		},
 		{
 			"scalar_and_points_values",
-			testutils.JSONHorizontalBarViewWithScalarAndPointsValues(),
+			testutils.NewJSONHorizontalBarView().UnsetValues().SetScalarValues().SetPointsValues().Unembed(),
 			nil,
 			jsontoapi.ErrOnlyOneOfValuesKindShouldBeSpecified,
 		},
 		{
 			"points_and_bars_values",
-			testutils.JSONHorizontalBarViewWithPointsAndBarsValues(),
+			testutils.NewJSONHorizontalBarView().SetPointsValues().Unembed(),
 			nil,
 			jsontoapi.ErrOnlyOneOfValuesKindShouldBeSpecified,
 		},
 		{
 			"all_values",
-			testutils.JSONHorizontalBarViewWithAllValues(),
+			testutils.NewJSONHorizontalBarView().SetScalarValues().SetPointsValues().Unembed(),
 			nil,
 			jsontoapi.ErrOnlyOneOfValuesKindShouldBeSpecified,
 		},
 		{
 			"bad_points_count",
-			testutils.JSONAreaViewBadPointsCount(),
+			testutils.NewJSONAreaView().SetBadPointsCount().Unembed(),
 			nil,
 			jsontoapi.ErrBadPointValuesCount,
 		},

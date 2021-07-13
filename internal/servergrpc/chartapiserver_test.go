@@ -113,8 +113,14 @@ func TestCreateChart_OK(t *testing.T) {
 	}
 
 	chartAPIClient := render.NewChartAPIClient(testingChartAPIEnv.chartAPIServerConn)
+	req := testutils.NewCreateChartRequest().
+		SetSizes().
+		SetBandBottomAxis().
+		SetLinearLeftAxis().
+		AddAreaView().
+		Unembed()
 
-	createChartReply, createChartErr := chartAPIClient.CreateChart(ctx, testutils.AreaCreateChartRequest())
+	createChartReply, createChartErr := chartAPIClient.CreateChart(ctx, req)
 
 	assert.NoError(t, createChartErr)
 	assert.NotEmpty(t, createChartReply.RequestId)
@@ -136,12 +142,12 @@ func TestCreateChart_ConvertErrs(t *testing.T) {
 	}{
 		{
 			"bad_sizes",
-			testutils.BadSizesCreateChartRequest(),
+			testutils.NewCreateChartRequest().SetBadSizes().Unembed(),
 			status.Errorf(codes.InvalidArgument, "unable to validate chart sizes: chart size max width is 100000"),
 		},
 		{
 			"bad_margins",
-			testutils.BadMarginsCreateChartRequest(),
+			testutils.NewCreateChartRequest().SetBadMargins().Unembed(),
 			status.Errorf(codes.InvalidArgument, "unable to validate chart margins: chart min right margin is 0"),
 		},
 	}
@@ -189,8 +195,14 @@ func TestCreateChart_RendererFailed(t *testing.T) {
 	}
 
 	chartAPIClient := render.NewChartAPIClient(testingChartAPIEnv.chartAPIServerConn)
+	req := testutils.NewCreateChartRequest().
+		SetSizes().
+		SetBandBottomAxis().
+		SetLinearLeftAxis().
+		AddAreaView().
+		Unembed()
 
-	actualReply, actualErr := chartAPIClient.CreateChart(ctx, testutils.AreaCreateChartRequest())
+	actualReply, actualErr := chartAPIClient.CreateChart(ctx, req)
 
 	assert.Equal(t, expectedErr.Error(), actualErr.Error())
 	assert.Empty(t, actualReply)
@@ -212,8 +224,14 @@ func TestCreateChart_RendererTooLong(t *testing.T) {
 	}
 
 	chartAPIClient := render.NewChartAPIClient(testingChartAPIEnv.chartAPIServerConn)
+	req := testutils.NewCreateChartRequest().
+		SetSizes().
+		SetBandBottomAxis().
+		SetLinearLeftAxis().
+		AddLineView().
+		Unembed()
 
-	actualReply, actualErr := chartAPIClient.CreateChart(ctx, testutils.AreaCreateChartRequest())
+	actualReply, actualErr := chartAPIClient.CreateChart(ctx, req)
 
 	assert.Contains(t, actualErr.Error(), "code = InvalidArgument desc = rpc error")
 	assert.Empty(t, actualReply)
