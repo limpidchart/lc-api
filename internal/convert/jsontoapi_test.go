@@ -15,7 +15,7 @@ func TestJSONToCreateChartRequest(t *testing.T) {
 	t.Parallel()
 
 	expected := &render.CreateChartRequest{
-		Title: "Vertical and line chart",
+		Title: "Chart",
 		Sizes: &render.ChartSizes{
 			Width:  &wrapperspb.Int32Value{Value: 100},
 			Height: &wrapperspb.Int32Value{Value: 200},
@@ -29,20 +29,32 @@ func TestJSONToCreateChartRequest(t *testing.T) {
 		Axes: &render.ChartAxes{
 			AxisTop:         nil,
 			AxisTopLabel:    "",
-			AxisBottom:      testutils.BandChartScale(),
-			AxisBottomLabel: "Categories",
-			AxisLeft:        testutils.LinearChartScale(),
-			AxisLeftLabel:   "Values",
+			AxisBottom:      testutils.NewBandChartScale().Unembed(),
+			AxisBottomLabel: "Bottom Axis",
+			AxisLeft:        testutils.NewLinearChartScale().Unembed(),
+			AxisLeftLabel:   "Left Axis",
 			AxisRight:       nil,
 			AxisRightLabel:  "",
 		},
 		Views: []*render.ChartView{
-			testutils.VerticalBarViewWithBoolDefaultsAndEndInsideLabel(),
-			testutils.LineViewWithBoolDefaults(),
+			testutils.NewVerticalBarView().SetDefaultPointBools().Unembed(),
+			testutils.NewLineView().SetDefaultBarBools().Unembed(),
 		},
 	}
 
-	actual, err := convert.JSONToCreateChartRequest(testutils.JSONVerticalBarAndLineCreateChartRequest())
+	actual, err := convert.JSONToCreateChartRequest(
+		testutils.NewJSONCreateChartRequest().
+			SetTitle().
+			SetSizes().
+			SetMargins().
+			SetBandBottomAxis().
+			SetBottomAxisLabel().
+			SetLinearLeftAxis().
+			SetLeftAxisLabel().
+			AddVerticalBarView().
+			AddLineView().
+			Unembed(),
+	)
 	assert.NoError(t, err)
 	assert.Equal(t, expected, actual)
 }

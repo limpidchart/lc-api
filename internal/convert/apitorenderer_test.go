@@ -16,10 +16,10 @@ func TestCreateChartRequestToRenderChartRequest(t *testing.T) {
 
 	expected := &render.RenderChartRequest{
 		RequestId: "",
-		Title:     "Vertical and line chart",
+		Title:     "Chart",
 		Sizes: &render.ChartSizes{
-			Width:  &wrapperspb.Int32Value{Value: 100},
-			Height: &wrapperspb.Int32Value{Value: 200},
+			Width:  &wrapperspb.Int32Value{Value: 1000},
+			Height: &wrapperspb.Int32Value{Value: 800},
 		},
 		Margins: &render.ChartMargins{
 			MarginTop:    &wrapperspb.Int32Value{Value: 10},
@@ -30,20 +30,32 @@ func TestCreateChartRequestToRenderChartRequest(t *testing.T) {
 		Axes: &render.ChartAxes{
 			AxisTop:         nil,
 			AxisTopLabel:    "",
-			AxisBottom:      testutils.BandChartScale(),
-			AxisBottomLabel: "Categories",
-			AxisLeft:        testutils.LinearChartScaleWithDefaultsAndInvertedRanges(),
-			AxisLeftLabel:   "Values",
+			AxisBottom:      testutils.NewBandChartScale().Unembed(),
+			AxisBottomLabel: "Bottom Axis",
+			AxisLeft:        testutils.NewLinearChartScale().InvertRanges().SetPaddings().Unembed(),
+			AxisLeftLabel:   "Left Axis",
 			AxisRight:       nil,
 			AxisRightLabel:  "",
 		},
 		Views: []*render.ChartView{
-			testutils.VerticalBarViewWithDefaults(),
-			testutils.LineViewWithDefaults(),
+			testutils.NewVerticalBarView().SetDefaultPointParams().SetDefaultColors().Unembed(),
+			testutils.NewLineView().SetDefaultBarParams().SetDefaultColors().SetFillAndStrokeColor().Unembed(),
 		},
 	}
 
-	actual, err := convert.CreateChartRequestToRenderChartRequest(testutils.VerticalBarAndLineCreateChartRequest())
+	actual, err := convert.CreateChartRequestToRenderChartRequest(
+		testutils.NewCreateChartRequest().
+			SetTitle().
+			SetSizes().
+			SetMargins().
+			SetBandBottomAxis().
+			SetBottomAxisLabel().
+			SetLinearLeftAxis().
+			SetLeftAxisLabel().
+			AddVerticalBarView().
+			AddView(testutils.NewLineView().SetDefaultColors().SetFillAndStrokeColor().Unembed()).
+			Unembed(),
+	)
 	assert.NoError(t, err)
 	assert.Equal(t, expected, actual)
 }
