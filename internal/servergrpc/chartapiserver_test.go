@@ -63,7 +63,7 @@ func newTestingChartAPIEnv(ctx context.Context, t *testing.T, opts testingChartA
 	chartAPIServer, err := servergrpc.NewServer(
 		ctx,
 		&log,
-		config.APIConfig{
+		config.GRPCConfig{
 			Address:                tcputils.LocalhostWithRandomPort,
 			ShutdownTimeoutSeconds: testingChartAPIEnvShutdownSecs,
 		},
