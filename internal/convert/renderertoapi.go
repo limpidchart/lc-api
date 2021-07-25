@@ -9,19 +9,13 @@ import (
 )
 
 // RenderChartReplyToAPIChartReply converts RenderChartReply to ChartReply.
-func RenderChartReplyToAPIChartReply(reqID, chartID string, now time.Time, rep *render.RenderChartReply) *render.ChartReply {
+func RenderChartReplyToAPIChartReply(reqID, chartID string, ts time.Time, rep *render.RenderChartReply) *render.ChartReply {
 	return &render.ChartReply{
 		RequestId:   reqID,
 		ChartId:     chartID,
 		ChartStatus: render.ChartStatus_CREATED,
-		CreatedAt: &timestamppb.Timestamp{
-			Seconds: now.Unix(),
-			Nanos:   int32(now.Nanosecond()),
-		},
-		DeletedAt: &timestamppb.Timestamp{
-			Seconds: now.Unix(),
-			Nanos:   int32(now.Nanosecond()),
-		},
-		ChartData: rep.ChartData,
+		CreatedAt:   timestamppb.New(ts),
+		DeletedAt:   timestamppb.New(ts), // set deleted at == created until storage backend is implemented
+		ChartData:   rep.ChartData,
 	}
 }
