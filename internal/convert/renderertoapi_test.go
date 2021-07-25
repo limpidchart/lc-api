@@ -28,15 +28,9 @@ func TestRenderChartReplyToAPIChartReply(t *testing.T) {
 		RequestId:   reqID,
 		ChartId:     chartID,
 		ChartStatus: render.ChartStatus_CREATED,
-		CreatedAt: &timestamppb.Timestamp{
-			Seconds: now.Unix(),
-			Nanos:   int32(now.Nanosecond()),
-		},
-		DeletedAt: &timestamppb.Timestamp{
-			Seconds: now.Unix(),
-			Nanos:   int32(now.Nanosecond()),
-		},
-		ChartData: data,
+		CreatedAt:   timestamppb.New(now),
+		DeletedAt:   timestamppb.New(now),
+		ChartData:   data,
 	}
 
 	actual := convert.RenderChartReplyToAPIChartReply(reqID, chartID, now, renderChartRep)
