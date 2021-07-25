@@ -7,69 +7,47 @@ import (
 	"net"
 	"time"
 
-	"github.com/google/uuid"
 	"github.com/rs/zerolog"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
 	"github.com/limpidchart/lc-api/internal/config"
-	"github.com/limpidchart/lc-api/internal/convert"
 	"github.com/limpidchart/lc-api/internal/render/github.com/limpidchart/lc-proto/render/v0"
+	"github.com/limpidchart/lc-api/internal/renderer"
 	"github.com/limpidchart/lc-api/internal/tcputils"
 )
 
-const rendererServiceCfg = `{"loadBalancingPolicy":"round_robin"}`
-
-// ErrCreateChartRequestCancelled contains error message about cancelled create chart request.
-var ErrCreateChartRequestCancelled = errors.New("create chart request is cancelled")
-
-// Server implements render.ChartAPIServer.
+// Server implements gRPC render.ChartAPIServer.
 type Server struct {
 	render.UnimplementedChartAPIServer
 	log                *zerolog.Logger
 	grpcServer         *grpc.Server
 	listener           *net.TCPListener
-	rendererConn       *grpc.ClientConn
 	rendererClient     render.ChartRendererClient
 	rendererReqTimeout time.Duration
 	shutdownTimeout    time.Duration
 }
 
-// NewServer configures needed connections and returns a new Server.
-func NewServer(ctx context.Context, log *zerolog.Logger, apiCfg config.GRPCConfig, rendererCfg config.RendererConfig) (*Server, error) {
-	listener, err := tcputils.Listener(apiCfg.Address)
+// NewServer configures a new Server.
+func NewServer(log *zerolog.Logger, cfg config.GRPCConfig, rendererClient render.ChartRendererClient, rendererReqTimeout int) (*Server, error) {
+	listener, err := tcputils.Listener(cfg.Address)
 	if err != nil {
 		return nil, fmt.Errorf("failed to start lc-api TCP listener: %w", err)
 	}
 
-	rendererConnCtx, rendererConnCancel := context.WithTimeout(ctx, time.Second*time.Duration(rendererCfg.ConnTimeoutSeconds))
-	defer rendererConnCancel()
-
-	rendererConn, err := grpc.DialContext(
-		rendererConnCtx,
-		rendererCfg.Address,
-		grpc.WithInsecure(),
-		grpc.WithBlock(),
-		grpc.WithDefaultServiceConfig(rendererServiceCfg),
-	)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create connection to lc-renderer: %w", err)
-	}
-
 	grpcServer := grpc.NewServer(
-		grpc.ChainUnaryInterceptor(recoverInterceptor(), requestIDInterceptor(), loggerInterceptor(log)),
+		grpc.ChainUnaryInterceptor(recoverInterceptor(log), requestIDInterceptor(), loggerInterceptor(log)),
 	)
 
 	//nolint: exhaustivestruct
 	chartAPIServer := &Server{
 		log:                log,
 		grpcServer:         grpcServer,
-		shutdownTimeout:    time.Second * time.Duration(apiCfg.ShutdownTimeoutSeconds),
+		shutdownTimeout:    time.Second * time.Duration(cfg.ShutdownTimeoutSeconds),
 		listener:           listener,
-		rendererConn:       rendererConn,
-		rendererClient:     render.NewChartRendererClient(rendererConn),
-		rendererReqTimeout: time.Second * time.Duration(rendererCfg.RequestTimeoutSeconds),
+		rendererClient:     rendererClient,
+		rendererReqTimeout: time.Second * time.Duration(rendererReqTimeout),
 	}
 
 	render.RegisterChartAPIServer(grpcServer, chartAPIServer)
@@ -105,7 +83,6 @@ func (s *Server) Serve(ctx context.Context) error {
 
 		go func() {
 			s.grpcServer.GracefulStop()
-			s.rendererConn.Close()
 			close(stopped)
 		}()
 
@@ -134,52 +111,37 @@ func (s *Server) Serve(ctx context.Context) error {
 }
 
 // CreateChart implements render.ChartAPIServer.CreateChart.
+//
+// nolint: wrapcheck
 func (s *Server) CreateChart(ctx context.Context, req *render.CreateChartRequest) (*render.ChartReply, error) {
 	reqID := getRequestID(ctx)
-	chartID := uuid.New().String()
-	now := time.Now().UTC()
 
-	renderChartReq, err := convert.CreateChartRequestToRenderChartRequest(req)
-	if err != nil {
-		return nil, status.Errorf(codes.InvalidArgument, err.Error())
+	res, err := renderer.CreateChart(ctx, renderer.CreateChartOpts{
+		RequestID:      reqID,
+		Request:        req,
+		RendererClient: s.rendererClient,
+		Timeout:        s.rendererReqTimeout,
+	})
+
+	switch {
+	case err == nil:
+		return res, nil
+	case errors.Is(err, renderer.ErrGenerateChartIDFailed):
+		return nil, internalError()
+	case errors.Is(err, renderer.ErrCreateChartRequestCancelled):
+		return nil, status.Error(codes.Canceled, err.Error())
+	default:
+		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
-
-	renderChartReq.RequestId = reqID
-
-	rendererCtx, rendererCancel := context.WithTimeout(ctx, s.rendererReqTimeout)
-	defer rendererCancel()
-
-	select {
-	case <-ctx.Done():
-		return nil, ErrCreateChartRequestCancelled
-	case renderResult := <-s.renderChart(rendererCtx, renderChartReq):
-		if renderResult.err != nil {
-			return nil, status.Errorf(codes.InvalidArgument, renderResult.err.Error())
-		}
-
-		return convert.RenderChartReplyToAPIChartReply(reqID, chartID, now, renderResult.reply), nil
-	}
-}
-
-type renderChartResult struct {
-	reply *render.RenderChartReply
-	err   error
-}
-
-func (s *Server) renderChart(ctx context.Context, req *render.RenderChartRequest) <-chan renderChartResult {
-	result := make(chan renderChartResult)
-
-	go func() {
-		reply, err := s.rendererClient.RenderChart(ctx, req)
-		result <- renderChartResult{reply, err}
-		close(result)
-	}()
-
-	return result
 }
 
 // GetChart implements render.ChartAPIServer.GetChart.
 // It returns codes.NotFound until storage is implemented.
 func (s *Server) GetChart(_ context.Context, req *render.GetChartRequest) (*render.ChartReply, error) {
 	return nil, status.Errorf(codes.NotFound, "chart %s is not found", req.ChartId)
+}
+
+func internalError() error {
+	// nolint: wrapcheck
+	return status.Error(codes.Internal, "server is unable to handle the request")
 }

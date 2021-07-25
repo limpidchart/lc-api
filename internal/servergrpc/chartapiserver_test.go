@@ -15,6 +15,7 @@ import (
 
 	"github.com/limpidchart/lc-api/internal/config"
 	"github.com/limpidchart/lc-api/internal/render/github.com/limpidchart/lc-proto/render/v0"
+	"github.com/limpidchart/lc-api/internal/renderer"
 	"github.com/limpidchart/lc-api/internal/servergrpc"
 	"github.com/limpidchart/lc-api/internal/tcputils"
 	"github.com/limpidchart/lc-api/internal/testutils"
@@ -23,9 +24,6 @@ import (
 const (
 	testingChartAPIEnvTimeoutSecs  = 5
 	testingChartAPIEnvShutdownSecs = 1
-
-	testingChartAPIEnvRendererConnTimeoutSecs = 1
-	testingChartAPIEnvRendererReqTimeoutSecs  = 1
 )
 
 type testingChartAPIEnv struct {
@@ -59,19 +57,29 @@ func newTestingChartAPIEnv(ctx context.Context, t *testing.T, opts testingChartA
 	}()
 
 	log := zerolog.New(os.Stderr)
-
-	chartAPIServer, err := servergrpc.NewServer(
-		ctx,
-		&log,
-		config.GRPCConfig{
+	// nolint: exhaustivestruct
+	cfg := config.Config{
+		GRPC: config.GRPCConfig{
 			Address:                tcputils.LocalhostWithRandomPort,
 			ShutdownTimeoutSeconds: testingChartAPIEnvShutdownSecs,
 		},
-		config.RendererConfig{
+		Renderer: config.RendererConfig{
 			Address:               chartRendererServer.Address(),
-			ConnTimeoutSeconds:    testingChartAPIEnvRendererConnTimeoutSecs,
-			RequestTimeoutSeconds: testingChartAPIEnvRendererReqTimeoutSecs,
+			ConnTimeoutSeconds:    testutils.RendererConnTimeoutSecs,
+			RequestTimeoutSeconds: testutils.RendererRequestTimeoutSecs,
 		},
+	}
+
+	rendererConn, err := renderer.NewConn(context.Background(), cfg.Renderer)
+	if err != nil {
+		return nil, fmt.Errorf("unable to create a connection to testing lc-renderer: %w", err)
+	}
+
+	chartAPIServer, err := servergrpc.NewServer(
+		&log,
+		cfg.GRPC,
+		render.NewChartRendererClient(rendererConn),
+		cfg.Renderer.RequestTimeoutSeconds,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("unable to configure testing lc-api server: %w", err)
@@ -233,7 +241,7 @@ func TestCreateChart_RendererTooLong(t *testing.T) {
 
 	actualReply, actualErr := chartAPIClient.CreateChart(ctx, req)
 
-	assert.Contains(t, actualErr.Error(), "code = InvalidArgument desc = rpc error")
+	assert.Contains(t, actualErr.Error(), "create chart request is cancelled")
 	assert.Empty(t, actualReply)
 }
 
