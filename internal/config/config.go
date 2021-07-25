@@ -6,33 +6,40 @@ import (
 )
 
 const (
-	lcAPIAddressDefault             = "0.0.0.0:54010"
-	lcAPIShutdownTimeoutSecsDefault = 5
-
 	lcRendererAddressDefault         = "dns:///localhost:54020"
 	lcRendererConnTimeoutSecsDefault = 5
 	lcRendererReqTimeoutSecsDefault  = 30
+
+	gRPCAddressDefault             = "0.0.0.0:54010"
+	gRPCShutdownTimeoutSecsDefault = 5
+
+	httpAddressDefault             = "0.0.0.0:54011"
+	httpShutdownTimeoutSecsDefault = 5
+	httpReadTimeoutSecsDefault     = 5
+	httpWriteTimeoutSecsDefault    = 10
+	httpIdleTimeoutSecsDefault     = 120
 )
 
 const (
-	lcAPIAddressEnv             = "LC_API_ADDRESS"
-	lcAPIShutdownTimeoutSecsEnv = "LC_API_SHUTDOWN_TIMEOUT"
-
 	lcRendererAddressEnv         = "LC_API_RENDERER_ADDRESS"
 	lcRendererConnTimeoutSecsEnv = "LC_API_RENDERER_CONN_TIMEOUT"
 	lcRendererReqTimeoutSecsEnv  = "LC_API_RENDERER_REQUEST_TIMEOUT"
+
+	gRPCAddressEnv             = "LC_API_GRPC_ADDRESS"
+	gRPCShutdownTimeoutSecsEnv = "LC_API_GRPC_SHUTDOWN_TIMEOUT"
+
+	httpAddressEnv             = "LC_API_HTTP_ADDRESS"
+	httpShutdownTimeoutSecsEnv = "LC_API_HTTP_SHUTDOWN_TIMEOUT"
+	httpReadTimeoutSecsEnv     = "LC_API_HTTP_READ_TIMEOUT"
+	httpWriteTimeoutSecsEnv    = "LC_API_HTTP_WRITE_TIMEOUT"
+	httpIdleTimeoutSecsEnv     = "LC_API_HTTP_IDLE_TIMEOUT"
 )
 
 // Config represents application config.
 type Config struct {
-	API      APIConfig
 	Renderer RendererConfig
-}
-
-// APIConfig contains lc-api related configuration.
-type APIConfig struct {
-	Address                string
-	ShutdownTimeoutSeconds int
+	GRPC     GRPCConfig
+	HTTP     HTTPConfig
 }
 
 // RendererConfig contains lc-renderer related configuration.
@@ -42,17 +49,39 @@ type RendererConfig struct {
 	RequestTimeoutSeconds int
 }
 
+// GRPCConfig contains lc-api gRPC related configuration.
+type GRPCConfig struct {
+	Address                string
+	ShutdownTimeoutSeconds int
+}
+
+// HTTPConfig contains lc-api HTTP related configuration.
+type HTTPConfig struct {
+	Address                string
+	ShutdownTimeoutSeconds int
+	ReadTimeoutSeconds     int
+	WriteTimeoutSeconds    int
+	IdleTimeoutSeconds     int
+}
+
 // NewFromEnv creates a new Config from environment variables.
 func NewFromEnv() Config {
 	return Config{
-		API: APIConfig{
-			Address:                stringValFromEnvOrDefault(lcAPIAddressEnv, lcAPIAddressDefault),
-			ShutdownTimeoutSeconds: intValFromEnvOrDefault(lcAPIShutdownTimeoutSecsEnv, lcAPIShutdownTimeoutSecsDefault),
-		},
 		Renderer: RendererConfig{
 			Address:               stringValFromEnvOrDefault(lcRendererAddressEnv, lcRendererAddressDefault),
 			ConnTimeoutSeconds:    intValFromEnvOrDefault(lcRendererConnTimeoutSecsEnv, lcRendererConnTimeoutSecsDefault),
 			RequestTimeoutSeconds: intValFromEnvOrDefault(lcRendererReqTimeoutSecsEnv, lcRendererReqTimeoutSecsDefault),
+		},
+		GRPC: GRPCConfig{
+			Address:                stringValFromEnvOrDefault(gRPCAddressEnv, gRPCAddressDefault),
+			ShutdownTimeoutSeconds: intValFromEnvOrDefault(gRPCShutdownTimeoutSecsEnv, gRPCShutdownTimeoutSecsDefault),
+		},
+		HTTP: HTTPConfig{
+			Address:                stringValFromEnvOrDefault(httpAddressEnv, httpAddressDefault),
+			ShutdownTimeoutSeconds: intValFromEnvOrDefault(httpShutdownTimeoutSecsEnv, httpShutdownTimeoutSecsDefault),
+			ReadTimeoutSeconds:     intValFromEnvOrDefault(httpReadTimeoutSecsEnv, httpReadTimeoutSecsDefault),
+			WriteTimeoutSeconds:    intValFromEnvOrDefault(httpWriteTimeoutSecsEnv, httpWriteTimeoutSecsDefault),
+			IdleTimeoutSeconds:     intValFromEnvOrDefault(httpIdleTimeoutSecsEnv, httpIdleTimeoutSecsDefault),
 		},
 	}
 }

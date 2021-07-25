@@ -34,7 +34,7 @@ func main() {
 		Time(zerolog.TimestampFieldName, time.Now().UTC()).
 		Msg("Starting lc-api")
 
-	chartAPIServer, err := servergrpc.NewServer(ctx, &log, cfg.API, cfg.Renderer)
+	chartAPIServer, err := servergrpc.NewServer(ctx, &log, cfg.GRPC, cfg.Renderer)
 	if err != nil {
 		cancel()
 
@@ -55,7 +55,7 @@ func main() {
 	log.Info().
 		Time(zerolog.TimestampFieldName, time.Now().UTC()).
 		Str("version", Version).
-		Str("addr", cfg.API.Address).
+		Str("addr", cfg.GRPC.Address).
 		Msg("Server is started")
 
 	select {

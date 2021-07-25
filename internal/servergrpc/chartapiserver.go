@@ -37,7 +37,7 @@ type Server struct {
 }
 
 // NewServer configures needed connections and returns a new Server.
-func NewServer(ctx context.Context, log *zerolog.Logger, apiCfg config.APIConfig, rendererCfg config.RendererConfig) (*Server, error) {
+func NewServer(ctx context.Context, log *zerolog.Logger, apiCfg config.GRPCConfig, rendererCfg config.RendererConfig) (*Server, error) {
 	listener, err := tcputils.Listener(apiCfg.Address)
 	if err != nil {
 		return nil, fmt.Errorf("failed to start lc-api TCP listener: %w", err)
