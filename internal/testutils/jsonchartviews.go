@@ -1,6 +1,6 @@
 package testutils
 
-import "github.com/limpidchart/lc-api/internal/serverrest/view/v0"
+import "github.com/limpidchart/lc-api/internal/serverhttp/v0/view"
 
 type JSONChartView struct {
 	*view.ChartView

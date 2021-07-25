@@ -7,7 +7,7 @@ import (
 	"google.golang.org/protobuf/types/known/wrapperspb"
 
 	"github.com/limpidchart/lc-api/internal/render/github.com/limpidchart/lc-proto/render/v0"
-	"github.com/limpidchart/lc-api/internal/serverrest/view/v0"
+	"github.com/limpidchart/lc-api/internal/serverhttp/v0/view"
 )
 
 const (

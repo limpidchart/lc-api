@@ -6,7 +6,7 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/limpidchart/lc-api/internal/render/github.com/limpidchart/lc-proto/render/v0"
-	"github.com/limpidchart/lc-api/internal/serverrest/view/v0"
+	"github.com/limpidchart/lc-api/internal/serverhttp/v0/view"
 	"github.com/limpidchart/lc-api/internal/testutils"
 	"github.com/limpidchart/lc-api/internal/validate/jsontoapi"
 )
@@ -68,6 +68,12 @@ func TestChartViewFromJSON(t *testing.T) {
 			testutils.NewJSONAreaView().SetBadPointsCount().Unembed(),
 			nil,
 			jsontoapi.ErrBadPointValuesCount,
+		},
+		{
+			"no_values",
+			testutils.NewJSONAreaView().UnsetValues().Unembed(),
+			nil,
+			jsontoapi.ErrValuesShouldBeSpecified,
 		},
 	}
 
