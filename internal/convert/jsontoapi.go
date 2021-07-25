@@ -1,31 +1,39 @@
 package convert
 
 import (
+	"errors"
 	"fmt"
 
 	"google.golang.org/protobuf/types/known/wrapperspb"
 
 	"github.com/limpidchart/lc-api/internal/render/github.com/limpidchart/lc-proto/render/v0"
-	"github.com/limpidchart/lc-api/internal/serverrest/view/v0"
+	"github.com/limpidchart/lc-api/internal/serverhttp/v0/view"
 	"github.com/limpidchart/lc-api/internal/validate/jsontoapi"
 )
 
+// ErrCreateChartRequestJSONIsEmpty represents error message about empty create chart JSON.
+var ErrCreateChartRequestJSONIsEmpty = errors.New("create chart JSON is empty")
+
 // JSONToCreateChartRequest converts JSON view representation to *render.CreateChartRequest.
 func JSONToCreateChartRequest(reqJSON *view.CreateChartRequest) (*render.CreateChartRequest, error) {
-	chartAxes, err := chartAxesFromJSON(reqJSON.Request.Axes)
+	if reqJSON == nil {
+		return nil, ErrCreateChartRequestJSONIsEmpty
+	}
+
+	chartAxes, err := chartAxesFromJSON(reqJSON.Chart.Axes)
 	if err != nil {
 		return nil, err
 	}
 
-	chartViews, err := chartViewsFromJSON(reqJSON.Request.Views)
+	chartViews, err := chartViewsFromJSON(reqJSON.Chart.Views)
 	if err != nil {
 		return nil, err
 	}
 
 	return &render.CreateChartRequest{
-		Title:   reqJSON.Request.Title,
-		Sizes:   chartSizesFromJSON(reqJSON.Request.Sizes),
-		Margins: chartMarginsFromJSON(reqJSON.Request.Margins),
+		Title:   reqJSON.Chart.Title,
+		Sizes:   chartSizesFromJSON(reqJSON.Chart.Sizes),
+		Margins: chartMarginsFromJSON(reqJSON.Chart.Margins),
 		Axes:    chartAxes,
 		Views:   chartViews,
 	}, nil

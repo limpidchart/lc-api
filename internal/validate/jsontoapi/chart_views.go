@@ -8,7 +8,7 @@ import (
 	"google.golang.org/protobuf/types/known/wrapperspb"
 
 	"github.com/limpidchart/lc-api/internal/render/github.com/limpidchart/lc-proto/render/v0"
-	"github.com/limpidchart/lc-api/internal/serverrest/view/v0"
+	"github.com/limpidchart/lc-api/internal/serverhttp/v0/view"
 )
 
 const pointValuesCount = 2
@@ -16,6 +16,9 @@ const pointValuesCount = 2
 var (
 	// ErrViewIsEmpty contains error message about empty view.
 	ErrViewIsEmpty = errors.New("chart view is empty")
+
+	// ErrValuesShouldBeSpecified contains error message about missing values.
+	ErrValuesShouldBeSpecified = errors.New("chart view values are not specified")
 
 	// ErrOnlyOneOfValuesKindShouldBeSpecified contains error message about a case when too many values kinds are provided.
 	ErrOnlyOneOfValuesKindShouldBeSpecified = errors.New("only one of bars_values, points_values, scalar_values should be specified")
@@ -142,6 +145,12 @@ func ChartViewFromJSON(jsonView *view.ChartView) (*render.ChartView, error) {
 		result.Values = &render.ChartView_ScalarValues{
 			ScalarValues: scalarValuesFromJSON(jsonView),
 		}
+
+		valuesAreSet = true
+	}
+
+	if !valuesAreSet {
+		return nil, ErrValuesShouldBeSpecified
 	}
 
 	return result, nil

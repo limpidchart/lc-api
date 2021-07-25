@@ -58,3 +58,11 @@ func TestJSONToCreateChartRequest(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, expected, actual)
 }
+
+func TestJSONToCreateChartRequestEmpty(t *testing.T) {
+	t.Parallel()
+
+	actual, err := convert.JSONToCreateChartRequest(nil)
+	assert.Equal(t, convert.ErrCreateChartRequestJSONIsEmpty, err)
+	assert.Empty(t, actual)
+}

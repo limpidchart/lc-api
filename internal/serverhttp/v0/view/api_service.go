@@ -2,6 +2,21 @@ package view
 
 import "time"
 
+// ChartStatus represents one of available chart statuses.
+type ChartStatus string
+
+const (
+	// ChartStatusCreated represents a created chart.
+	ChartStatusCreated ChartStatus = "CREATED"
+
+	// ChartStatusError represents some error.
+	ChartStatusError ChartStatus = "ERROR"
+)
+
+func (c ChartStatus) String() string {
+	return string(c)
+}
+
 // CreateChartRequest represents a request to create chart.
 // swagger:parameters createChart
 type CreateChartRequest struct {
@@ -9,10 +24,8 @@ type CreateChartRequest struct {
 	//
 	// in: body
 	// required: true
-	Request struct {
+	Chart struct {
 		// Title represents chart title.
-		//
-		// required: true
 		Title string `json:"title"`
 
 		// Sizes represents chart sizes.
@@ -30,7 +43,7 @@ type CreateChartRequest struct {
 		//
 		// required: true
 		Views []*ChartView `json:"views"`
-	}
+	} `json:"chart"`
 }
 
 // GetChartRequest represents a request to get chart.
@@ -64,6 +77,6 @@ type ChartReply struct {
 	// DeletedAt contains chart deletion timestamp.
 	DeletedAt *time.Time `json:"deleted_at"`
 
-	// ChartData represents chart raw bytes representation.
-	ChartData []byte `json:"chart_data"`
+	// ChartData contains chart representation.
+	ChartData string `json:"chart_data"`
 }
