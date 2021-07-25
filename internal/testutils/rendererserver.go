@@ -15,6 +15,14 @@ import (
 	"github.com/limpidchart/lc-api/internal/tcputils"
 )
 
+const (
+	// RendererConnTimeoutSecs represents connection timeout for testing renderer server.
+	RendererConnTimeoutSecs = 2
+
+	// RendererRequestTimeoutSecs represents rendering timeout for testing renderer server.
+	RendererRequestTimeoutSecs = 1
+)
+
 // ErrRequestCancelled contains error message about cancelled testing lc-renderer request.
 var ErrRequestCancelled = errors.New("request to testing lc-renderer is cancelled")
 

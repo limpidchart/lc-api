@@ -10,6 +10,8 @@ import (
 	"github.com/rs/zerolog"
 
 	"github.com/limpidchart/lc-api/internal/config"
+	"github.com/limpidchart/lc-api/internal/render/github.com/limpidchart/lc-proto/render/v0"
+	"github.com/limpidchart/lc-api/internal/renderer"
 	"github.com/limpidchart/lc-api/internal/servergrpc"
 )
 
@@ -32,31 +34,25 @@ func main() {
 
 	log.Info().
 		Time(zerolog.TimestampFieldName, time.Now().UTC()).
-		Msg("Starting lc-api")
+		Msg("Creating a connection to lc-renderer")
 
-	chartAPIServer, err := servergrpc.NewServer(ctx, &log, cfg.GRPC, cfg.Renderer)
+	rendererConn, err := renderer.NewConn(ctx, cfg.Renderer)
 	if err != nil {
 		cancel()
 
 		log.Error().
 			Time(zerolog.TimestampFieldName, time.Now().UTC()).
 			Err(err).
-			Msg("Unable to configure lc-api gRPC server")
+			Msg("Unable to create a connection to lc-renderer")
 
 		os.Exit(1)
 	}
 
-	go func() {
-		if err := chartAPIServer.Serve(ctx); err != nil {
-			errs <- err
-		}
-	}()
+	defer rendererConn.Close()
 
-	log.Info().
-		Time(zerolog.TimestampFieldName, time.Now().UTC()).
-		Str("version", Version).
-		Str("addr", cfg.GRPC.Address).
-		Msg("Server is started")
+	rendererClient := render.NewChartRendererClient(rendererConn)
+
+	startGRPCServer(ctx, cancel, &log, cfg.GRPC, rendererClient, cfg.Renderer.RequestTimeoutSeconds, errs)
 
 	select {
 	case <-ctx.Done():
@@ -69,6 +65,32 @@ func main() {
 
 		cancel()
 	}
+}
+
+func startGRPCServer(ctx context.Context, cancel context.CancelFunc, log *zerolog.Logger, cfg config.GRPCConfig, rendererClient render.ChartRendererClient, rendererReqTimeout int, errs chan<- error) {
+	log.Info().
+		Time(zerolog.TimestampFieldName, time.Now().UTC()).
+		Str("version", Version).
+		Str("addr", cfg.Address).
+		Msg("Starting gRPC server")
+
+	gRPCServer, err := servergrpc.NewServer(log, cfg, rendererClient, rendererReqTimeout)
+	if err != nil {
+		cancel()
+
+		log.Error().
+			Time(zerolog.TimestampFieldName, time.Now().UTC()).
+			Err(err).
+			Msg("Unable to configure gRPC server")
+
+		os.Exit(1)
+	}
+
+	go func() {
+		if err := gRPCServer.Serve(ctx); err != nil {
+			errs <- err
+		}
+	}()
 }
 
 func catchSignals(ctx context.Context, log *zerolog.Logger, cancel context.CancelFunc) {
