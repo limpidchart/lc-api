@@ -2,7 +2,10 @@ package testutils
 
 import (
 	"math/rand"
+	"testing"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
@@ -17,4 +20,15 @@ func RandomString(size int) string {
 	}
 
 	return string(res)
+}
+
+func RandomUUID(t *testing.T) uuid.UUID {
+	t.Helper()
+
+	u, err := uuid.NewRandom()
+	if err != nil {
+		t.Fatalf("unable to generate random UUID: %s", err)
+	}
+
+	return u
 }
