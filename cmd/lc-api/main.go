@@ -1,3 +1,4 @@
+//go:generate swagger generate spec -i ../../api/tags.yaml -o ../../api/lc-api-swagger.yaml
 package main
 
 import (
