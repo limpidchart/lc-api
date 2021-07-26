@@ -1,7 +1,7 @@
 package view
 
 // ChartScale represents options to configure chart scale.
-//nolint: govet
+// nolint: govet
 type ChartScale struct {
 	// Kind represents scale kind.
 	// Can be one of:

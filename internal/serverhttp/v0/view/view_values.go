@@ -1,7 +1,7 @@
 package view
 
 // BarsValues represents options for bar values.
-//nolint: govet
+// nolint: govet
 type BarsValues struct {
 	// Values contains bars values.
 	//

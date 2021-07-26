@@ -12,7 +12,7 @@ import (
 func TestValidateChartTitle(t *testing.T) {
 	t.Parallel()
 
-	//nolint: govet
+	// nolint: govet
 	tt := []struct {
 		name        string
 		title       string

@@ -13,7 +13,7 @@ import (
 func TestValidateChartSizes(t *testing.T) {
 	t.Parallel()
 
-	//nolint: govet
+	// nolint: govet
 	tt := []struct {
 		name               string
 		chartSizes         *render.ChartSizes

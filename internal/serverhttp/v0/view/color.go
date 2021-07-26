@@ -1,7 +1,7 @@
 package view
 
 // ChartElementColor represents options to configure color for chart elements.
-//nolint: govet
+// nolint: govet
 type ChartElementColor struct {
 	// Hex represents hex color value.
 	Hex string `json:"hex,omitempty"`

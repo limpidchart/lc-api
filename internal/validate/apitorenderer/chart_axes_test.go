@@ -14,7 +14,7 @@ import (
 func TestValidateChartAxes(t *testing.T) {
 	t.Parallel()
 
-	//nolint: govet
+	// nolint: govet
 	tt := []struct {
 		name              string
 		initialChartAxes  *render.ChartAxes
