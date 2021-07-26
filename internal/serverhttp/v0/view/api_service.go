@@ -60,9 +60,13 @@ type GetChartRequest struct {
 // swagger:model chartReply
 type ChartReply struct {
 	// ID of the request.
+	//
+	// swagger:strfmt uuid4
 	RequestID string `json:"request_id"`
 
 	// ID of the chart.
+	//
+	// swagger:strfmt uuid4
 	ChartID string `json:"chart_id"`
 
 	// Chart status.

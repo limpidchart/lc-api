@@ -1,0 +1,492 @@
+basePath: /v0
+consumes:
+- application/json
+definitions:
+  BarsValues:
+    description: 'nolint: govet'
+    properties:
+      fill_color:
+        $ref: '#/definitions/ChartElementColor'
+      stroke_color:
+        $ref: '#/definitions/ChartElementColor'
+      values:
+        description: Values contains bars values.
+        items:
+          format: float
+          type: number
+        type: array
+        x-go-name: Values
+    required:
+    - values
+    title: BarsValues represents options for bar values.
+    type: object
+    x-go-package: github.com/limpidchart/lc-api/internal/serverhttp/v0/view
+  ChartAxes:
+    properties:
+      axis_bottom:
+        $ref: '#/definitions/ChartScale'
+      axis_bottom_label:
+        description: AxisBottomLabel represents label for bottom axis.
+        type: string
+        x-go-name: AxisBottomLabel
+      axis_left:
+        $ref: '#/definitions/ChartScale'
+      axis_left_label:
+        description: AxisLeftLabel represents label for left axis.
+        type: string
+        x-go-name: AxisLeftLabel
+      axis_right:
+        $ref: '#/definitions/ChartScale'
+      axis_right_label:
+        description: AxisRightLabel represents label for right axis.
+        type: string
+        x-go-name: AxisRightLabel
+      axis_top:
+        $ref: '#/definitions/ChartScale'
+      axis_top_label:
+        description: AxisTopLabel represents label for top axis.
+        type: string
+        x-go-name: AxisTopLabel
+    title: ChartAxes represents options to configure chart axes.
+    type: object
+    x-go-package: github.com/limpidchart/lc-api/internal/serverhttp/v0/view
+  ChartElementColor:
+    description: 'nolint: govet'
+    properties:
+      hex:
+        description: Hex represents hex color value.
+        type: string
+        x-go-name: Hex
+      rgb:
+        $ref: '#/definitions/RGB'
+    title: ChartElementColor represents options to configure color for chart elements.
+    type: object
+    x-go-package: github.com/limpidchart/lc-api/internal/serverhttp/v0/view
+  ChartMargins:
+    properties:
+      margin_bottom:
+        description: MarginBottom represents chart bottom margin.
+        format: int64
+        type: integer
+        x-go-name: MarginBottom
+      margin_left:
+        description: MarginLeft represents chart left margin.
+        format: int64
+        type: integer
+        x-go-name: MarginLeft
+      margin_right:
+        description: MarginRight represents chart right margin.
+        format: int64
+        type: integer
+        x-go-name: MarginRight
+      margin_top:
+        description: MarginTop represents chart top margin.
+        format: int64
+        type: integer
+        x-go-name: MarginTop
+    title: ChartMargins represents options to configure chart margins.
+    type: object
+    x-go-package: github.com/limpidchart/lc-api/internal/serverhttp/v0/view
+  ChartScale:
+    description: 'nolint: govet'
+    properties:
+      domain_categories:
+        $ref: '#/definitions/DomainCategories'
+      domain_numeric:
+        $ref: '#/definitions/DomainNumeric'
+      inner_padding:
+        description: InnerPadding represents inner padding for categories.
+        format: float
+        type: number
+        x-go-name: InnerPadding
+      kind:
+        description: |-
+          Kind represents scale kind.
+          Can be one of:
+          linear
+          band
+        type: string
+        x-go-name: Kind
+      no_boundaries_offset:
+        description: |-
+          NoBoundariesOffset disables an offset from the start and end of an axis.
+          This is usually need for an area or line views.
+        type: boolean
+        x-go-name: NoBoundariesOffset
+      outer_padding:
+        description: OuterPadding represents outer padding for categories.
+        format: float
+        type: number
+        x-go-name: OuterPadding
+      range_end:
+        description: RangeEnd represents end of the scale range.
+        format: int64
+        type: integer
+        x-go-name: RangeEnd
+      range_start:
+        description: RangeStart represents start of the scale range.
+        format: int64
+        type: integer
+        x-go-name: RangeStart
+    required:
+    - kind
+    title: ChartScale represents options to configure chart scale.
+    type: object
+    x-go-package: github.com/limpidchart/lc-api/internal/serverhttp/v0/view
+  ChartSizes:
+    properties:
+      height:
+        description: Height represents chart height.
+        format: int64
+        type: integer
+        x-go-name: Height
+      width:
+        description: Width represents chart width.
+        format: int64
+        type: integer
+        x-go-name: Width
+    title: ChartSizes represents options to configure chart sizes.
+    type: object
+    x-go-package: github.com/limpidchart/lc-api/internal/serverhttp/v0/view
+  ChartView:
+    description: 'nolint: govet'
+    properties:
+      bar_label_position:
+        description: |-
+          BarLabelPosition represents bar label position.
+          Can be one of:
+          start_outside
+          start_inside
+          center
+          end_inside
+          end_outside
+        type: string
+        x-go-name: BarLabelPosition
+      bar_label_visible:
+        description: BarLabelVisible represents bar visibility.
+        type: boolean
+        x-go-name: BarLabelVisible
+      bars_values:
+        description: |-
+          BarsValues represents bars values.
+          It can be used with horizontal or vertical bar view.
+        items:
+          $ref: '#/definitions/BarsValues'
+        type: array
+        x-go-name: BarsValues
+      colors:
+        $ref: '#/definitions/ChartViewColors'
+      kind:
+        description: |-
+          Kind represents view kind.
+          Can be one of:
+          area
+          horizontal_bar
+          line
+          scatter
+          vertical_bar
+        type: string
+        x-go-name: Kind
+      point_label_position:
+        description: |-
+          PointLabelPosition represents point label position.
+          Can be one of:
+          top
+          top_right
+          top_left
+          left
+          right
+          bottom
+          bottom_left
+          bottom_right
+        type: string
+        x-go-name: PointLabelPosition
+      point_label_visible:
+        description: PointLabelVisible represents point visibility.
+        type: boolean
+        x-go-name: PointLabelVisible
+      point_type:
+        description: |-
+          PointType represents view point type.
+          Can be one of:
+          circle
+          square
+          x
+        type: string
+        x-go-name: PointType
+      point_visible:
+        description: PointVisible represents point visibility.
+        type: boolean
+        x-go-name: PointVisible
+      points_values:
+        $ref: '#/definitions/PointsValues'
+      scalar_values:
+        $ref: '#/definitions/ScalarValues'
+    required:
+    - kind
+    title: ChartView represents options to configure chart view.
+    type: object
+    x-go-package: github.com/limpidchart/lc-api/internal/serverhttp/v0/view
+  ChartViewColors:
+    properties:
+      fill_color:
+        $ref: '#/definitions/ChartElementColor'
+      point_fill_color:
+        $ref: '#/definitions/ChartElementColor'
+      point_stroke_color:
+        $ref: '#/definitions/ChartElementColor'
+      stroke_color:
+        $ref: '#/definitions/ChartElementColor'
+    title: ChartViewColors represents view colors parameters.
+    type: object
+    x-go-package: github.com/limpidchart/lc-api/internal/serverhttp/v0/view
+  DomainCategories:
+    properties:
+      categories:
+        items:
+          type: string
+        type: array
+        x-go-name: Categories
+    title: DomainCategories represents string scale domain categories.
+    type: object
+    x-go-package: github.com/limpidchart/lc-api/internal/serverhttp/v0/view
+  DomainNumeric:
+    properties:
+      end:
+        format: float
+        type: number
+        x-go-name: End
+      start:
+        format: float
+        type: number
+        x-go-name: Start
+    title: DomainNumeric represents numeric scale domain.
+    type: object
+    x-go-package: github.com/limpidchart/lc-api/internal/serverhttp/v0/view
+  PointsValues:
+    properties:
+      values:
+        description: Values contains points values.
+        items:
+          items:
+            format: float
+            type: number
+          type: array
+        type: array
+        x-go-name: Values
+    required:
+    - values
+    title: PointsValues represents options for point values.
+    type: object
+    x-go-package: github.com/limpidchart/lc-api/internal/serverhttp/v0/view
+  RGB:
+    properties:
+      b:
+        format: int64
+        type: integer
+        x-go-name: B
+      g:
+        format: int64
+        type: integer
+        x-go-name: G
+      r:
+        format: int64
+        type: integer
+        x-go-name: R
+    title: RGB contains values for RGB color.
+    type: object
+    x-go-package: github.com/limpidchart/lc-api/internal/serverhttp/v0/view
+  ScalarValues:
+    properties:
+      values:
+        description: Values contains scalar values.
+        items:
+          format: float
+          type: number
+        type: array
+        x-go-name: Values
+    required:
+    - values
+    title: ScalarValues represents options for scalar values.
+    type: object
+    x-go-package: github.com/limpidchart/lc-api/internal/serverhttp/v0/view
+  chartReply:
+    properties:
+      chart_data:
+        description: ChartData contains chart representation.
+        type: string
+        x-go-name: ChartData
+      chart_id:
+        description: ID of the chart.
+        format: uuid4
+        type: string
+        x-go-name: ChartID
+      chart_status:
+        description: |-
+          Chart status.
+          Can be one of:
+          CREATED
+          ERROR
+        type: string
+        x-go-name: ChartStatus
+      created_at:
+        description: CreatedAt contains chart creation timestamp.
+        format: date-time
+        type: string
+        x-go-name: CreatedAt
+      deleted_at:
+        description: DeletedAt contains chart deletion timestamp.
+        format: date-time
+        type: string
+        x-go-name: DeletedAt
+      request_id:
+        description: ID of the request.
+        format: uuid4
+        type: string
+        x-go-name: RequestID
+    title: ChartReply represents a reply from create or get requests.
+    type: object
+    x-go-name: ChartReply
+    x-go-package: github.com/limpidchart/lc-api/internal/serverhttp/v0/view
+info:
+  description: This package provides a public HTTP API for lc-api.
+  title: lc-api.
+  version: 0.1.0
+paths:
+  /charts:
+    get:
+      description: Get charts list
+      operationId: listCharts
+      produces:
+      - application/json
+      responses:
+        default:
+          $ref: '#/responses/error'
+      schemes:
+      - http
+      - https
+      tags:
+      - Charts
+    post:
+      description: Create a new chart
+      operationId: createChart
+      parameters:
+      - description: Chart create request body.
+        in: body
+        name: chart
+        required: true
+        schema:
+          properties:
+            axes:
+              $ref: '#/definitions/ChartAxes'
+            margins:
+              $ref: '#/definitions/ChartMargins'
+            sizes:
+              $ref: '#/definitions/ChartSizes'
+            title:
+              description: Title represents chart title.
+              type: string
+              x-go-name: Title
+            views:
+              description: Views represents chart views
+              items:
+                $ref: '#/definitions/ChartView'
+              type: array
+              x-go-name: Views
+          required:
+          - axes
+          - views
+          type: object
+        x-go-name: Chart
+      produces:
+      - application/json
+      responses:
+        "201":
+          $ref: '#/responses/chartRepr'
+        default:
+          $ref: '#/responses/error'
+      schemes:
+      - http
+      - https
+      tags:
+      - Charts
+  /charts/{chart_id}:
+    get:
+      description: Get chart by ID
+      operationId: getChart
+      parameters:
+      - description: ChartID represents id of the chart.
+        format: uuid4
+        in: query
+        name: chat_id
+        required: true
+        type: string
+        x-go-name: ChartID
+      - description: Chart identifier.
+        in: path
+        name: chart_id
+        required: true
+        type: string
+        x-go-name: ChartID
+      produces:
+      - application/json
+      responses:
+        "200":
+          $ref: '#/responses/chartRepr'
+        "404":
+          $ref: '#/responses/notFoundError'
+        default:
+          $ref: '#/responses/error'
+      schemes:
+      - http
+      - https
+      tags:
+      - Charts
+produces:
+- application/json
+responses:
+  chartRepr:
+    description: Chart representation.
+    schema:
+      properties:
+        chart:
+          $ref: '#/definitions/chartReply'
+      type: object
+  error:
+    description: Error represents error message.
+    schema:
+      properties:
+        error:
+          properties:
+            message:
+              description: Message of the error.
+              type: string
+              x-go-name: Message
+          type: object
+          x-go-name: Error
+      type: object
+  notFoundError:
+    description: NotFoundError represents not found error for any resource.
+    schema:
+      properties:
+        error:
+          properties:
+            id:
+              description: Resource ID.
+              format: uuid4
+              type: string
+              x-go-name: ID
+            message:
+              description: Message of the error.
+              type: string
+              x-go-name: Message
+          type: object
+          x-go-name: Error
+      type: object
+schemes:
+- http
+- https
+swagger: "2.0"
+tags:
+- description: Operations with charts
+  name: Charts
