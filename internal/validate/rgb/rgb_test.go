@@ -13,7 +13,7 @@ import (
 func TestChartElementColor(t *testing.T) {
 	t.Parallel()
 
-	//nolint: govet
+	// nolint: govet
 	tt := []struct {
 		name              string
 		chartElementColor *render.ChartElementColor
@@ -87,7 +87,7 @@ func TestChartElementColor(t *testing.T) {
 func TestValidateChartElementColorJSON(t *testing.T) {
 	t.Parallel()
 
-	//nolint: govet
+	// nolint: govet
 	tt := []struct {
 		name              string
 		chartElementColor *view.ChartElementColor

@@ -142,7 +142,7 @@ func TestCreateChart_OK(t *testing.T) {
 
 // nolint: paralleltest
 func TestCreateChart_ConvertErrs(t *testing.T) {
-	//nolint: govet
+	// nolint: govet
 	tt := []struct {
 		name        string
 		request     *render.CreateChartRequest

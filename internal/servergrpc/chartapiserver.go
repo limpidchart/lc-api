@@ -40,7 +40,7 @@ func NewServer(log *zerolog.Logger, cfg config.GRPCConfig, rendererClient render
 		grpc.ChainUnaryInterceptor(recoverInterceptor(log), requestIDInterceptor(), loggerInterceptor(log)),
 	)
 
-	//nolint: exhaustivestruct
+	// nolint: exhaustivestruct
 	chartAPIServer := &Server{
 		log:                log,
 		grpcServer:         grpcServer,

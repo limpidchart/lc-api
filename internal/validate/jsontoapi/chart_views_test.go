@@ -14,7 +14,7 @@ import (
 func TestChartViewFromJSON(t *testing.T) {
 	t.Parallel()
 
-	//nolint: govet
+	// nolint: govet
 	tt := []struct {
 		name         string
 		chartView    *view.ChartView

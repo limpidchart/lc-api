@@ -1,7 +1,7 @@
 package view
 
 // ChartView represents options to configure chart view.
-//nolint: govet
+// nolint: govet
 type ChartView struct {
 	// Kind represents view kind.
 	// Can be one of:
