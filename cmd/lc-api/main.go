@@ -13,6 +13,7 @@ import (
 	"github.com/limpidchart/lc-api/internal/render/github.com/limpidchart/lc-proto/render/v0"
 	"github.com/limpidchart/lc-api/internal/renderer"
 	"github.com/limpidchart/lc-api/internal/servergrpc"
+	"github.com/limpidchart/lc-api/internal/serverhttp"
 )
 
 // Version contains lc-api version.
@@ -53,6 +54,7 @@ func main() {
 	rendererClient := render.NewChartRendererClient(rendererConn)
 
 	startGRPCServer(ctx, cancel, &log, cfg.GRPC, rendererClient, cfg.Renderer.RequestTimeoutSeconds, errs)
+	startHTTPServer(ctx, &log, cfg.HTTP, rendererClient, cfg.Renderer.RequestTimeoutSeconds, errs)
 
 	select {
 	case <-ctx.Done():
@@ -88,6 +90,22 @@ func startGRPCServer(ctx context.Context, cancel context.CancelFunc, log *zerolo
 
 	go func() {
 		if err := gRPCServer.Serve(ctx); err != nil {
+			errs <- err
+		}
+	}()
+}
+
+func startHTTPServer(ctx context.Context, log *zerolog.Logger, cfg config.HTTPConfig, rendererClient render.ChartRendererClient, rendererReqTimeout int, errs chan<- error) {
+	log.Info().
+		Time(zerolog.TimestampFieldName, time.Now().UTC()).
+		Str("version", Version).
+		Str("addr", cfg.Address).
+		Msg("Starting HTTP server")
+
+	httpServer := serverhttp.NewServer(log, cfg, rendererClient, rendererReqTimeout)
+
+	go func() {
+		if err := httpServer.Serve(ctx); err != nil {
 			errs <- err
 		}
 	}()
