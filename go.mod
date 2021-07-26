@@ -3,6 +3,7 @@ module github.com/limpidchart/lc-api
 go 1.16
 
 require (
+	github.com/go-chi/chi/v5 v5.0.3
 	github.com/google/uuid v1.1.2
 	github.com/rs/zerolog v1.23.0
 	github.com/stretchr/testify v1.5.1
