@@ -35,7 +35,7 @@ func Routes(log *zerolog.Logger, rendererClient render.ChartRendererClient, rend
 	//   default: error
 	//   201: chartRepr
 	r.
-		With(middleware.RequireCreateChartParams()).
+		With(middleware.RequireCreateChartParams(log)).
 		Post("/", createChartHandler(log, rendererClient, rendererReqTimeout))
 
 	// swagger:route GET /charts/{chart_id} Charts getChart
@@ -52,7 +52,7 @@ func Routes(log *zerolog.Logger, rendererClient render.ChartRendererClient, rend
 	//   200: chartRepr
 	//   404: notFoundError
 	r.
-		With(middleware.RequireChartID).
+		With(middleware.RequireChartID(log)).
 		Get(fmt.Sprintf("/{%s}", view.ParamChartID), getChartHandler(log))
 
 	// swagger:route GET /charts Charts listCharts
@@ -100,11 +100,15 @@ func createChartHandler(log *zerolog.Logger, rendererClient render.ChartRenderer
 			log.Error().Err(err).Msg(fmt.Sprintf("unable to generate a random UUID for %s", view.ParamChartID))
 			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		case errors.Is(err, renderer.ErrCreateChartRequestCancelled):
-			log.Warn().Msg("renderer request timed-out")
-			http.Error(w, http.StatusText(http.StatusRequestTimeout), http.StatusRequestTimeout)
+			msg := "Renderer request timed-out"
+			log.Warn().Msg(msg)
+			w.WriteHeader(http.StatusRequestTimeout)
+			middleware.MarshalJSON(w, view.NewError(msg))
 		default:
-			log.Warn().Err(err).Msg("unable to render a chart")
-			http.Error(w, fmt.Sprintf("unable to render a chart: %s", err.Error()), http.StatusBadRequest)
+			msg := fmt.Sprintf("Unable to render a chart: %s", err.Error())
+			log.Warn().Msg(msg)
+			w.WriteHeader(http.StatusBadRequest)
+			middleware.MarshalJSON(w, view.NewError(msg))
 		}
 	}
 }

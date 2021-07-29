@@ -222,7 +222,7 @@ func TestCreateChart_ErrTimeout(t *testing.T) {
 	resp.Body.Close()
 
 	assert.Equal(t, http.StatusRequestTimeout, resp.StatusCode)
-	assert.Equal(t, http.StatusText(http.StatusRequestTimeout)+"\n", string(body))
+	assert.Equal(t, testutils.EncodeToJSON(t, view.NewError("Renderer request timed-out")), string(body))
 }
 
 func TestCreateChart_ErrNoAxes(t *testing.T) {
@@ -268,5 +268,51 @@ func TestCreateChart_ErrNoAxes(t *testing.T) {
 	resp.Body.Close()
 
 	assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
-	assert.Equal(t, "unable to render a chart: unable to validate chart axes: chart axes are not specified\n", string(body))
+	assert.Equal(t, testutils.EncodeToJSON(t, view.NewError("Unable to render a chart: unable to validate chart axes: chart axes are not specified")), string(body))
+}
+
+func TestCreateChart_ErrBadJSON(t *testing.T) {
+	t.Parallel()
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*testingRendererEnvTimeoutSecs)
+	defer cancel()
+
+	chartData := []byte("bad_json")
+
+	testingRendererEnv, err := newTestingRendererEnv(ctx, t, testingRendererEnvOpts{
+		rendererChartData: chartData,
+		rendererFailMsg:   "",
+		rendererLatency:   time.Minute,
+	})
+	if err != nil {
+		t.Fatalf("unable to start testing renderer environment: %s", err)
+	}
+
+	log := zerolog.New(os.Stderr)
+	router := chi.NewRouter()
+	router.Route(serverhttp.GroupV0, func(router chi.Router) {
+		router.Mount(serverhttp.GroupCharts, chart.Routes(&log, testingRendererEnv.rendererClient, time.Second*time.Duration(testutils.RendererRequestTimeoutSecs)))
+	})
+
+	w := httptest.NewRecorder()
+	url := strings.Join([]string{serverhttp.GroupV0, serverhttp.GroupCharts}, "")
+
+	r, err := http.NewRequestWithContext(context.Background(), http.MethodPost, url, bytes.NewReader([]byte(`{"chart":{}`)))
+	if err != nil {
+		t.Fatalf("unable to prepare HTTP request: %s", err)
+	}
+
+	router.ServeHTTP(w, r)
+
+	resp := w.Result()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		t.Fatalf("unable to read response body: %s", err)
+	}
+
+	resp.Body.Close()
+
+	assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
+	assert.Equal(t, testutils.EncodeToJSON(t, view.NewError("Unable to decode create chart JSON: unexpected EOF")), string(body))
 }
