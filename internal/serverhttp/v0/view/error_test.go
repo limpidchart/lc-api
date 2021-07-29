@@ -14,7 +14,7 @@ func TestNewError(t *testing.T) {
 
 	msg := "some bad thing happened"
 
-	expected := view.Error{
+	expected := &view.Error{
 		Body: struct {
 			Error struct {
 				Message string `json:"message"`
@@ -49,7 +49,7 @@ func TestNewNotFoundError(t *testing.T) {
 	id := "uuid_0"
 	resource := "crab"
 
-	expected := view.NotFoundError{
+	expected := &view.NotFoundError{
 		Body: struct {
 			Error struct {
 				ID      string `json:"id"`

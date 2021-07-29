@@ -21,8 +21,8 @@ type Error struct {
 }
 
 // NewError returns a new Error.
-func NewError(message string) Error {
-	return Error{
+func NewError(message string) *Error {
+	return &Error{
 		Body: struct {
 			Error struct {
 				Message string `json:"message"`
@@ -68,8 +68,8 @@ type NotFoundError struct {
 }
 
 // NewNotFoundError returns a NotFoundError.
-func NewNotFoundError(resourceType string, id string) NotFoundError {
-	return NotFoundError{
+func NewNotFoundError(resourceType string, id string) *NotFoundError {
+	return &NotFoundError{
 		Body: struct {
 			Error struct {
 				ID      string `json:"id"`

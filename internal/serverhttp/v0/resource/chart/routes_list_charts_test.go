@@ -15,8 +15,6 @@ import (
 
 	"github.com/limpidchart/lc-api/internal/serverhttp"
 	"github.com/limpidchart/lc-api/internal/serverhttp/v0/resource/chart"
-	"github.com/limpidchart/lc-api/internal/serverhttp/v0/view"
-	"github.com/limpidchart/lc-api/internal/testutils"
 )
 
 func TestListCharts_Unimplemented(t *testing.T) {
@@ -48,5 +46,5 @@ func TestListCharts_Unimplemented(t *testing.T) {
 	resp.Body.Close()
 
 	assert.Equal(t, http.StatusNotImplemented, resp.StatusCode)
-	assert.Equal(t, testutils.EncodeToJSON(t, view.NewError("Unable to get list of charts since auth is not implemented yet")), string(body))
+	assert.Equal(t, `{"error":{"message":"List of charts handler is not implemented yet"}}`+"\n", string(body))
 }

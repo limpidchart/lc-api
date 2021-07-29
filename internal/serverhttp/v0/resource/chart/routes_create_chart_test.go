@@ -222,7 +222,7 @@ func TestCreateChart_ErrTimeout(t *testing.T) {
 	resp.Body.Close()
 
 	assert.Equal(t, http.StatusRequestTimeout, resp.StatusCode)
-	assert.Equal(t, testutils.EncodeToJSON(t, view.NewError("Renderer request timed-out")), string(body))
+	assert.Equal(t, `{"error":{"message":"Renderer request timed-out"}}`+"\n", string(body))
 }
 
 func TestCreateChart_ErrNoAxes(t *testing.T) {
@@ -268,7 +268,7 @@ func TestCreateChart_ErrNoAxes(t *testing.T) {
 	resp.Body.Close()
 
 	assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
-	assert.Equal(t, testutils.EncodeToJSON(t, view.NewError("Unable to render a chart: unable to validate chart axes: chart axes are not specified")), string(body))
+	assert.Equal(t, `{"error":{"message":"Unable to render a chart: unable to validate chart axes: chart axes are not specified"}}`+"\n", string(body))
 }
 
 func TestCreateChart_ErrBadJSON(t *testing.T) {
@@ -314,5 +314,5 @@ func TestCreateChart_ErrBadJSON(t *testing.T) {
 	resp.Body.Close()
 
 	assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
-	assert.Equal(t, testutils.EncodeToJSON(t, view.NewError("Unable to decode create chart JSON: unexpected EOF")), string(body))
+	assert.Equal(t, `{"error":{"message":"Unable to decode create chart JSON: unexpected EOF"}}`+"\n", string(body))
 }
