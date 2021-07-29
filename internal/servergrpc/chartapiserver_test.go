@@ -241,7 +241,7 @@ func TestCreateChart_RendererTooLong(t *testing.T) {
 
 	actualReply, actualErr := chartAPIClient.CreateChart(ctx, req)
 
-	assert.Contains(t, actualErr.Error(), "create chart request is cancelled")
+	assert.Contains(t, actualErr.Error(), "is cancelled")
 	assert.Empty(t, actualReply)
 }
 
