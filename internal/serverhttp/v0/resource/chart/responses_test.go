@@ -1,6 +1,7 @@
 package chart_test
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"testing"
 	"time"
@@ -31,7 +32,7 @@ func TestNewCreatedChartFromReply(t *testing.T) {
 				ChartStatus: view.ChartStatusCreated.String(),
 				CreatedAt:   &ts,
 				DeletedAt:   &ts,
-				ChartData:   "svg_chart_data_1",
+				ChartData:   base64.StdEncoding.EncodeToString(data),
 			},
 		},
 	}

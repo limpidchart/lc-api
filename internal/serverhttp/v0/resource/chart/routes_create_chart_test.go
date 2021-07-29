@@ -122,6 +122,7 @@ func TestCreateChart_VerticalAndLineOK(t *testing.T) {
 	defer cancel()
 
 	chartData := []byte(`<svg>vertical_and_line</svg>`)
+	chartDataEncoded := "PHN2Zz52ZXJ0aWNhbF9hbmRfbGluZTwvc3ZnPg=="
 
 	testingRendererEnv, err := newTestingRendererEnv(ctx, t, testingRendererEnvOpts{
 		rendererChartData: chartData,
@@ -176,7 +177,7 @@ func TestCreateChart_VerticalAndLineOK(t *testing.T) {
 	assert.NotEmpty(t, respBody.Chart.DeletedAt)
 	assert.Equal(t, respBody.Chart.CreatedAt, respBody.Chart.DeletedAt) // equal until the storage backend is implemented
 	assert.Equal(t, view.ChartStatusCreated.String(), respBody.Chart.ChartStatus)
-	assert.Equal(t, string(chartData), respBody.Chart.ChartData)
+	assert.Equal(t, chartDataEncoded, respBody.Chart.ChartData)
 }
 
 func TestCreateChart_ErrTimeout(t *testing.T) {
