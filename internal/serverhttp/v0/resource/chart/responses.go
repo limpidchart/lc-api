@@ -1,6 +1,7 @@
 package chart
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 
@@ -25,6 +26,11 @@ func NewCreatedChartFromReply(chartReply *render.ChartReply) *Chart {
 	createdAt := chartReply.CreatedAt.AsTime()
 	deletedAt := chartReply.DeletedAt.AsTime()
 
+	chartData := string(chartReply.ChartData)
+	if len(chartReply.ChartData) != 0 {
+		chartData = base64.StdEncoding.EncodeToString(chartReply.ChartData)
+	}
+
 	return &Chart{
 		Body: struct {
 			Chart *view.ChartReply `json:"chart"`
@@ -35,7 +41,7 @@ func NewCreatedChartFromReply(chartReply *render.ChartReply) *Chart {
 				ChartStatus: view.ChartStatusCreated.String(),
 				CreatedAt:   &createdAt,
 				DeletedAt:   &deletedAt,
-				ChartData:   string(chartReply.ChartData),
+				ChartData:   chartData,
 			},
 		},
 	}

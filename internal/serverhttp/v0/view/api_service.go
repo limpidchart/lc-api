@@ -81,6 +81,6 @@ type ChartReply struct {
 	// DeletedAt contains chart deletion timestamp.
 	DeletedAt *time.Time `json:"deleted_at"`
 
-	// ChartData contains chart representation.
+	// ChartData contains base64 chart representation.
 	ChartData string `json:"chart_data"`
 }
