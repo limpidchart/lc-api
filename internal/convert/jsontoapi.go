@@ -75,20 +75,20 @@ func chartMarginsFromJSON(margins *view.ChartMargins) *render.ChartMargins {
 		marginRight  *wrapperspb.Int32Value
 	)
 
-	if margins.MarginTop != nil {
-		marginTop = &wrapperspb.Int32Value{Value: int32(*margins.MarginTop)}
+	if margins.Top != nil {
+		marginTop = &wrapperspb.Int32Value{Value: int32(*margins.Top)}
 	}
 
-	if margins.MarginBottom != nil {
-		marginBottom = &wrapperspb.Int32Value{Value: int32(*margins.MarginBottom)}
+	if margins.Bottom != nil {
+		marginBottom = &wrapperspb.Int32Value{Value: int32(*margins.Bottom)}
 	}
 
-	if margins.MarginLeft != nil {
-		marginLeft = &wrapperspb.Int32Value{Value: int32(*margins.MarginLeft)}
+	if margins.Left != nil {
+		marginLeft = &wrapperspb.Int32Value{Value: int32(*margins.Left)}
 	}
 
-	if margins.MarginRight != nil {
-		marginRight = &wrapperspb.Int32Value{Value: int32(*margins.MarginRight)}
+	if margins.Right != nil {
+		marginRight = &wrapperspb.Int32Value{Value: int32(*margins.Right)}
 	}
 
 	return &render.ChartMargins{
@@ -104,35 +104,35 @@ func chartAxesFromJSON(axes *view.ChartAxes) (*render.ChartAxes, error) {
 		return nil, nil
 	}
 
-	axisTop, err := jsontoapi.ChartScaleFromJSON(axes.AxisTop)
+	axisTop, err := jsontoapi.ChartScaleFromJSON(axes.Top)
 	if err != nil {
 		return nil, fmt.Errorf("unable to validate top chart scale: %w", err)
 	}
 
-	axisBottom, err := jsontoapi.ChartScaleFromJSON(axes.AxisBottom)
+	axisBottom, err := jsontoapi.ChartScaleFromJSON(axes.Bottom)
 	if err != nil {
 		return nil, fmt.Errorf("unable to validate bottom chart scale: %w", err)
 	}
 
-	axisLeft, err := jsontoapi.ChartScaleFromJSON(axes.AxisLeft)
+	axisLeft, err := jsontoapi.ChartScaleFromJSON(axes.Left)
 	if err != nil {
 		return nil, fmt.Errorf("unable to validate left chart scale: %w", err)
 	}
 
-	axisRight, err := jsontoapi.ChartScaleFromJSON(axes.AxisRight)
+	axisRight, err := jsontoapi.ChartScaleFromJSON(axes.Right)
 	if err != nil {
 		return nil, fmt.Errorf("unable to validate right chart scale: %w", err)
 	}
 
 	return &render.ChartAxes{
 		AxisTop:         axisTop,
-		AxisTopLabel:    axes.AxisTopLabel,
+		AxisTopLabel:    axes.TopLabel,
 		AxisBottom:      axisBottom,
-		AxisBottomLabel: axes.AxisBottomLabel,
+		AxisBottomLabel: axes.BottomLabel,
 		AxisLeft:        axisLeft,
-		AxisLeftLabel:   axes.AxisLeftLabel,
+		AxisLeftLabel:   axes.LeftLabel,
 		AxisRight:       axisRight,
-		AxisRightLabel:  axes.AxisRightLabel,
+		AxisRightLabel:  axes.RightLabel,
 	}, nil
 }
 

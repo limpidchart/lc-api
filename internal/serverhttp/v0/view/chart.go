@@ -11,42 +11,42 @@ type ChartSizes struct {
 
 // ChartMargins represents options to configure chart margins.
 type ChartMargins struct {
-	// MarginTop represents chart top margin.
-	MarginTop *int `json:"margin_top,omitempty"`
+	// Top represents chart top margin.
+	Top *int `json:"top,omitempty"`
 
-	// MarginBottom represents chart bottom margin.
-	MarginBottom *int `json:"margin_bottom,omitempty"`
+	// Bottom represents chart bottom margin.
+	Bottom *int `json:"bottom,omitempty"`
 
-	// MarginLeft represents chart left margin.
-	MarginLeft *int `json:"margin_left,omitempty"`
+	// Left represents chart left margin.
+	Left *int `json:"left,omitempty"`
 
-	// MarginRight represents chart right margin.
-	MarginRight *int `json:"margin_right,omitempty"`
+	// Right represents chart right margin.
+	Right *int `json:"right,omitempty"`
 }
 
 // ChartAxes represents options to configure chart axes.
 type ChartAxes struct {
-	// AxisTop represents configured scale for top axis.
-	AxisTop *ChartScale `json:"axis_top,omitempty"`
+	// Top represents configured scale for top axis.
+	Top *ChartScale `json:"top,omitempty"`
 
-	// AxisTopLabel represents label for top axis.
-	AxisTopLabel string `json:"axis_top_label,omitempty"`
+	// TopLabel represents label for top axis.
+	TopLabel string `json:"top_label,omitempty"`
 
-	// AxisBottom represents configured scale for botom axis.
-	AxisBottom *ChartScale `json:"axis_bottom,omitempty"`
+	// Bottom represents configured scale for botom axis.
+	Bottom *ChartScale `json:"bottom,omitempty"`
 
-	// AxisBottomLabel represents label for bottom axis.
-	AxisBottomLabel string `json:"axis_bottom_label,omitempty"`
+	// BottomLabel represents label for bottom axis.
+	BottomLabel string `json:"bottom_label,omitempty"`
 
-	// AxisLeft represents configured scale for left axis.
-	AxisLeft *ChartScale `json:"axis_left,omitempty"`
+	// Left represents configured scale for left axis.
+	Left *ChartScale `json:"left,omitempty"`
 
-	// AxisLeftLabel represents label for left axis.
-	AxisLeftLabel string `json:"axis_left_label,omitempty"`
+	// LeftLabel represents label for left axis.
+	LeftLabel string `json:"left_label,omitempty"`
 
-	// AxisRight represents configured scale for right axis.
-	AxisRight *ChartScale `json:"axis_right,omitempty"`
+	// Right represents configured scale for right axis.
+	Right *ChartScale `json:"right,omitempty"`
 
-	// AxisRightLabel represents label for right axis.
-	AxisRightLabel string `json:"axis_right_label,omitempty"`
+	// RightLabel represents label for right axis.
+	RightLabel string `json:"right_label,omitempty"`
 }
