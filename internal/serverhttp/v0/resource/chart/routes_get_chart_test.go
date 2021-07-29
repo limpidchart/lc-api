@@ -15,7 +15,6 @@ import (
 
 	"github.com/limpidchart/lc-api/internal/serverhttp"
 	"github.com/limpidchart/lc-api/internal/serverhttp/v0/resource/chart"
-	"github.com/limpidchart/lc-api/internal/serverhttp/v0/view"
 	"github.com/limpidchart/lc-api/internal/testutils"
 )
 
@@ -49,7 +48,7 @@ func TestGetChart_NotFound(t *testing.T) {
 	resp.Body.Close()
 
 	assert.Equal(t, http.StatusNotFound, resp.StatusCode)
-	assert.Equal(t, testutils.EncodeToJSON(t, view.NewNotFoundError("chart", chartID)), string(body))
+	assert.Equal(t, fmt.Sprintf(`{"error":{"id":"%s","message":"chart not found"}}`+"\n", chartID), string(body))
 }
 
 func TestGetChart_BadChartID(t *testing.T) {
@@ -81,5 +80,5 @@ func TestGetChart_BadChartID(t *testing.T) {
 	resp.Body.Close()
 
 	assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
-	assert.Equal(t, testutils.EncodeToJSON(t, view.NewError(`chart_id value is bad: unable to parse "mychart" as UUID: invalid UUID length: 7`)), string(body))
+	assert.Equal(t, `{"error":{"message":"chart_id value is bad: unable to parse mychart as UUID: invalid UUID length: 7"}}`+"\n", string(body))
 }

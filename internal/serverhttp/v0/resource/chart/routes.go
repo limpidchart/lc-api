@@ -136,6 +136,6 @@ func listChartsHandler() func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// We return error until auth is implemented.
 		w.WriteHeader(http.StatusNotImplemented)
-		middleware.MarshalJSON(w, view.NewError("Unable to get list of charts since auth is not implemented yet"))
+		middleware.MarshalJSON(w, view.NewError("List of charts handler is not implemented yet"))
 	}
 }

@@ -49,7 +49,7 @@ func GetChartID(ctx context.Context) string {
 func validateUUID(raw string) (uuid.UUID, error) {
 	u, err := uuid.Parse(raw)
 	if err != nil {
-		return uuid.UUID{}, fmt.Errorf(`unable to parse "%s" as UUID: %w`, raw, err)
+		return uuid.UUID{}, fmt.Errorf("unable to parse %s as UUID: %w", raw, err)
 	}
 
 	return u, nil
