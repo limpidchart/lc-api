@@ -6,13 +6,15 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/rs/zerolog"
+
 	"github.com/limpidchart/lc-api/internal/convert"
 	"github.com/limpidchart/lc-api/internal/render/github.com/limpidchart/lc-proto/render/v0"
 	"github.com/limpidchart/lc-api/internal/serverhttp/v0/view"
 )
 
 // RequireCreateChartParams checks if provided create chart parameters body can be used and stores it in the context.
-func RequireCreateChartParams() func(next http.Handler) http.Handler {
+func RequireCreateChartParams(log *zerolog.Logger) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			// nolint: exhaustivestruct
@@ -20,8 +22,13 @@ func RequireCreateChartParams() func(next http.Handler) http.Handler {
 
 			err := json.NewDecoder(r.Body).Decode(&createOptsJSON)
 			if err != nil {
+				msg := fmt.Sprintf("Unable to decode create chart JSON: %s", err)
+				log := log.With().Str(RequestIDLogKey, GetRequestID(r.Context())).Logger()
+
+				log.Warn().Msg(msg)
+
 				w.WriteHeader(http.StatusBadRequest)
-				MarshalJSON(w, view.NewError("Create chart body is not a valid JSON"))
+				MarshalJSON(w, view.NewError(msg))
 
 				return
 			}

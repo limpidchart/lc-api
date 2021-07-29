@@ -7,26 +7,34 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
+	"github.com/rs/zerolog"
 
 	"github.com/limpidchart/lc-api/internal/serverhttp/v0/view"
 )
 
 // RequireChartID checks that chart_id parameter can be used and stores it in the context.
-func RequireChartID(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		rawChartID := chi.URLParam(r, view.ParamChartID)
-		chartID, err := validateUUID(rawChartID)
-		if err != nil {
-			w.WriteHeader(http.StatusBadRequest)
-			MarshalJSON(w, view.NewError(fmt.Sprintf("%s value is bad: %s", view.ParamChartID, err)))
+func RequireChartID(log *zerolog.Logger) func(next http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			rawChartID := chi.URLParam(r, view.ParamChartID)
+			chartID, err := validateUUID(rawChartID)
+			if err != nil {
+				msg := fmt.Sprintf("%s value is bad: %s", view.ParamChartID, err)
+				log := log.With().Str(RequestIDLogKey, GetRequestID(r.Context())).Logger()
 
-			return
-		}
+				log.Warn().Msg(msg)
 
-		ctx := context.WithValue(r.Context(), ctxChartID, chartID.String())
+				w.WriteHeader(http.StatusBadRequest)
+				MarshalJSON(w, view.NewError(msg))
 
-		next.ServeHTTP(w, r.WithContext(ctx))
-	})
+				return
+			}
+
+			ctx := context.WithValue(r.Context(), ctxChartID, chartID.String())
+
+			next.ServeHTTP(w, r.WithContext(ctx))
+		})
+	}
 }
 
 // GetChartID retrieves chart_id value from context.
