@@ -34,10 +34,10 @@ func (req *JSONCreateChartRequest) SetSizes() *JSONCreateChartRequest {
 func (req *JSONCreateChartRequest) SetMargins() *JSONCreateChartRequest {
 	// nolint: gomnd
 	req.Chart.Margins = &view.ChartMargins{
-		MarginTop:    intToPtr(10),
-		MarginBottom: intToPtr(20),
-		MarginLeft:   intToPtr(30),
-		MarginRight:  intToPtr(40),
+		Top:    intToPtr(10),
+		Bottom: intToPtr(20),
+		Left:   intToPtr(30),
+		Right:  intToPtr(40),
 	}
 
 	return req
@@ -50,7 +50,7 @@ func (req *JSONCreateChartRequest) SetBandBottomAxis() *JSONCreateChartRequest {
 		axes = &view.ChartAxes{}
 	}
 
-	axes.AxisBottom = NewJSONBandChartScale().Unembed()
+	axes.Bottom = NewJSONBandChartScale().Unembed()
 	req.Chart.Axes = axes
 
 	return req
@@ -63,7 +63,7 @@ func (req *JSONCreateChartRequest) SetBottomAxisLabel() *JSONCreateChartRequest 
 		axes = &view.ChartAxes{}
 	}
 
-	axes.AxisBottomLabel = "Bottom Axis"
+	axes.BottomLabel = "Bottom Axis"
 	req.Chart.Axes = axes
 
 	return req
@@ -76,7 +76,7 @@ func (req *JSONCreateChartRequest) SetLinearLeftAxis() *JSONCreateChartRequest {
 		axes = &view.ChartAxes{}
 	}
 
-	axes.AxisLeft = NewJSONLinearChartScale().Unembed()
+	axes.Left = NewJSONLinearChartScale().Unembed()
 	req.Chart.Axes = axes
 
 	return req
@@ -89,7 +89,7 @@ func (req *JSONCreateChartRequest) SetLeftAxisLabel() *JSONCreateChartRequest {
 		axes = &view.ChartAxes{}
 	}
 
-	axes.AxisLeftLabel = "Left Axis"
+	axes.LeftLabel = "Left Axis"
 	req.Chart.Axes = axes
 
 	return req
