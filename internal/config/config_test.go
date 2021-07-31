@@ -26,7 +26,8 @@ func TestNewFromEnv(t *testing.T) {
 				setEnvVar(t, "LC_API_RENDERER_REQUEST_TIMEOUT", "120"),
 				setEnvVar(t, "LC_API_GRPC_ADDRESS", "localhost:63010"),
 				setEnvVar(t, "LC_API_GRPC_SHUTDOWN_TIMEOUT", "10"),
-				setEnvVar(t, "LC_API_HTTP_ADDRESS", "localhost:63011"),
+				setEnvVar(t, "LC_API_GRPC_HEALTH_CHECK_ADDRESS", "localhost:63011"),
+				setEnvVar(t, "LC_API_HTTP_ADDRESS", "localhost:63012"),
 				setEnvVar(t, "LC_API_HTTP_SHUTDOWN_TIMEOUT", "20"),
 				setEnvVar(t, "LC_API_HTTP_READ_TIMEOUT", "50"),
 				setEnvVar(t, "LC_API_HTTP_WRITE_TIMEOUT", "100"),
@@ -38,6 +39,7 @@ func TestNewFromEnv(t *testing.T) {
 				unsetEnvVar(t, "LC_API_RENDERER_REQUEST_TIMEOUT"),
 				unsetEnvVar(t, "LC_API_GRPC_ADDRESS"),
 				unsetEnvVar(t, "LC_API_GRPC_SHUTDOWN_TIMEOUT"),
+				unsetEnvVar(t, "LC_API_GRPC_HEALTH_CHECK_ADDRESS"),
 				unsetEnvVar(t, "LC_API_HTTP_ADDRESS"),
 				unsetEnvVar(t, "LC_API_HTTP_SHUTDOWN_TIMEOUT"),
 				unsetEnvVar(t, "LC_API_HTTP_READ_TIMEOUT"),
@@ -54,8 +56,11 @@ func TestNewFromEnv(t *testing.T) {
 					Address:                "localhost:63010",
 					ShutdownTimeoutSeconds: 10,
 				},
+				GRPCHealthCheck: config.GRPCHealthCheckConfig{
+					Address: "localhost:63011",
+				},
 				HTTP: config.HTTPConfig{
-					Address:                "localhost:63011",
+					Address:                "localhost:63012",
 					ShutdownTimeoutSeconds: 20,
 					ReadTimeoutSeconds:     50,
 					WriteTimeoutSeconds:    100,
@@ -89,6 +94,9 @@ func TestNewFromEnv(t *testing.T) {
 					Address:                "0.0.0.0:54010",
 					ShutdownTimeoutSeconds: 5,
 				},
+				GRPCHealthCheck: config.GRPCHealthCheckConfig{
+					Address: "0.0.0.0:54011",
+				},
 				HTTP: config.HTTPConfig{
 					Address:                "localhost:63010",
 					ShutdownTimeoutSeconds: 40,
@@ -118,8 +126,11 @@ func TestNewFromEnv(t *testing.T) {
 					Address:                "localhost:63010",
 					ShutdownTimeoutSeconds: 40,
 				},
+				GRPCHealthCheck: config.GRPCHealthCheckConfig{
+					Address: "0.0.0.0:54011",
+				},
 				HTTP: config.HTTPConfig{
-					Address:                "0.0.0.0:54011",
+					Address:                "0.0.0.0:54012",
 					ShutdownTimeoutSeconds: 5,
 					ReadTimeoutSeconds:     5,
 					WriteTimeoutSeconds:    10,
@@ -149,8 +160,11 @@ func TestNewFromEnv(t *testing.T) {
 					Address:                "0.0.0.0:54010",
 					ShutdownTimeoutSeconds: 5,
 				},
+				GRPCHealthCheck: config.GRPCHealthCheckConfig{
+					Address: "0.0.0.0:54011",
+				},
 				HTTP: config.HTTPConfig{
-					Address:                "0.0.0.0:54011",
+					Address:                "0.0.0.0:54012",
 					ShutdownTimeoutSeconds: 5,
 					ReadTimeoutSeconds:     5,
 					WriteTimeoutSeconds:    10,
@@ -172,8 +186,11 @@ func TestNewFromEnv(t *testing.T) {
 					Address:                "0.0.0.0:54010",
 					ShutdownTimeoutSeconds: 5,
 				},
+				GRPCHealthCheck: config.GRPCHealthCheckConfig{
+					Address: "0.0.0.0:54011",
+				},
 				HTTP: config.HTTPConfig{
-					Address:                "0.0.0.0:54011",
+					Address:                "0.0.0.0:54012",
 					ShutdownTimeoutSeconds: 5,
 					ReadTimeoutSeconds:     5,
 					WriteTimeoutSeconds:    10,
@@ -201,8 +218,11 @@ func TestNewFromEnv(t *testing.T) {
 					Address:                "0.0.0.0:54010",
 					ShutdownTimeoutSeconds: 5,
 				},
+				GRPCHealthCheck: config.GRPCHealthCheckConfig{
+					Address: "0.0.0.0:54011",
+				},
 				HTTP: config.HTTPConfig{
-					Address:                "0.0.0.0:54011",
+					Address:                "0.0.0.0:54012",
 					ShutdownTimeoutSeconds: 11,
 					ReadTimeoutSeconds:     5,
 					WriteTimeoutSeconds:    10,

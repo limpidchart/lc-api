@@ -1,4 +1,4 @@
-package servergrpc
+package interceptor
 
 import (
 	"context"
@@ -6,11 +6,14 @@ import (
 
 	"github.com/rs/zerolog"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 const stackSize = 8192
 
-func recoverInterceptor(log *zerolog.Logger) grpc.UnaryServerInterceptor {
+// Recover represents interceptro to catch panics.
+func Recover(log *zerolog.Logger) grpc.UnaryServerInterceptor {
 	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (_ interface{}, err error) {
 		panicked := true
 
@@ -21,7 +24,7 @@ func recoverInterceptor(log *zerolog.Logger) grpc.UnaryServerInterceptor {
 
 				log.Error().Bytes(zerolog.ErrorStackFieldName, stack).Interface(zerolog.ErrorFieldName, rec).Msg("gRPC server panicked")
 
-				err = internalError()
+				err = InternalError()
 			}
 		}()
 
@@ -30,4 +33,10 @@ func recoverInterceptor(log *zerolog.Logger) grpc.UnaryServerInterceptor {
 
 		return resp, err
 	}
+}
+
+// InternalError returns status.Error with codes.Internal code.
+func InternalError() error {
+	// nolint: wrapcheck
+	return status.Error(codes.Internal, "server is unable to handle the request")
 }

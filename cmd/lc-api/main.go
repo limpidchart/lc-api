@@ -10,10 +10,10 @@ import (
 
 	"github.com/rs/zerolog"
 
+	"github.com/limpidchart/lc-api/internal/backend"
 	"github.com/limpidchart/lc-api/internal/config"
-	"github.com/limpidchart/lc-api/internal/render/github.com/limpidchart/lc-proto/render/v0"
-	"github.com/limpidchart/lc-api/internal/renderer"
 	"github.com/limpidchart/lc-api/internal/servergrpc"
+	"github.com/limpidchart/lc-api/internal/servergrpchealthcheck"
 	"github.com/limpidchart/lc-api/internal/serverhttp"
 )
 
@@ -36,26 +36,25 @@ func main() {
 
 	log.Info().
 		Time(zerolog.TimestampFieldName, time.Now().UTC()).
-		Msg("Creating a connection to lc-renderer")
+		Msg("Initializing backend connections")
 
-	rendererConn, err := renderer.NewConn(ctx, cfg.Renderer)
+	b, err := backend.NewBackend(ctx, cfg.Renderer)
 	if err != nil {
 		cancel()
 
 		log.Error().
 			Time(zerolog.TimestampFieldName, time.Now().UTC()).
 			Err(err).
-			Msg("Unable to create a connection to lc-renderer")
+			Msg("Unable to initialize backend connections")
 
 		os.Exit(1)
 	}
 
-	defer rendererConn.Close()
+	defer b.Shutdown()
 
-	rendererClient := render.NewChartRendererClient(rendererConn)
-
-	startGRPCServer(ctx, cancel, &log, cfg.GRPC, rendererClient, cfg.Renderer.RequestTimeoutSeconds, errs)
-	startHTTPServer(ctx, &log, cfg.HTTP, rendererClient, cfg.Renderer.RequestTimeoutSeconds, errs)
+	startGRPCServer(ctx, cancel, &log, b, cfg.GRPC, errs)
+	startHCServer(ctx, cancel, &log, b, cfg.GRPCHealthCheck, errs)
+	startHTTPServer(ctx, &log, b, cfg.HTTP, errs)
 
 	select {
 	case <-ctx.Done():
@@ -70,14 +69,14 @@ func main() {
 	}
 }
 
-func startGRPCServer(ctx context.Context, cancel context.CancelFunc, log *zerolog.Logger, cfg config.GRPCConfig, rendererClient render.ChartRendererClient, rendererReqTimeout int, errs chan<- error) {
+func startGRPCServer(ctx context.Context, cancel context.CancelFunc, log *zerolog.Logger, b backend.Backend, gRPCCfg config.GRPCConfig, errs chan<- error) {
 	log.Info().
 		Time(zerolog.TimestampFieldName, time.Now().UTC()).
 		Str("version", Version).
-		Str("addr", cfg.Address).
+		Str("address", gRPCCfg.Address).
 		Msg("Starting gRPC server")
 
-	gRPCServer, err := servergrpc.NewServer(log, cfg, rendererClient, rendererReqTimeout)
+	gRPCServer, err := servergrpc.NewServer(log, b, gRPCCfg)
 	if err != nil {
 		cancel()
 
@@ -96,14 +95,40 @@ func startGRPCServer(ctx context.Context, cancel context.CancelFunc, log *zerolo
 	}()
 }
 
-func startHTTPServer(ctx context.Context, log *zerolog.Logger, cfg config.HTTPConfig, rendererClient render.ChartRendererClient, rendererReqTimeout int, errs chan<- error) {
+func startHCServer(ctx context.Context, cancel context.CancelFunc, log *zerolog.Logger, b backend.Backend, hcCfg config.GRPCHealthCheckConfig, errs chan<- error) {
 	log.Info().
 		Time(zerolog.TimestampFieldName, time.Now().UTC()).
 		Str("version", Version).
-		Str("addr", cfg.Address).
+		Str("address", hcCfg.Address).
+		Msg("Starting gRPC health check server")
+
+	hcServer, err := servergrpchealthcheck.NewServer(log, b, hcCfg)
+	if err != nil {
+		cancel()
+
+		log.Error().
+			Time(zerolog.TimestampFieldName, time.Now().UTC()).
+			Err(err).
+			Msg("Unable to configure gRPC health check server")
+
+		os.Exit(1)
+	}
+
+	go func() {
+		if err := hcServer.Serve(ctx); err != nil {
+			errs <- err
+		}
+	}()
+}
+
+func startHTTPServer(ctx context.Context, log *zerolog.Logger, b backend.Backend, httpCfg config.HTTPConfig, errs chan<- error) {
+	log.Info().
+		Time(zerolog.TimestampFieldName, time.Now().UTC()).
+		Str("version", Version).
+		Str("address", httpCfg.Address).
 		Msg("Starting HTTP server")
 
-	httpServer := serverhttp.NewServer(log, cfg, rendererClient, rendererReqTimeout)
+	httpServer := serverhttp.NewServer(log, b, httpCfg)
 
 	go func() {
 		if err := httpServer.Serve(ctx); err != nil {

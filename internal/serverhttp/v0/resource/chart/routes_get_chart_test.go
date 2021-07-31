@@ -24,7 +24,7 @@ func TestGetChart_NotFound(t *testing.T) {
 	log := zerolog.New(os.Stderr)
 	router := chi.NewRouter()
 	router.Route(serverhttp.GroupV0, func(router chi.Router) {
-		router.Mount(serverhttp.GroupCharts, chart.Routes(&log, nil, 0))
+		router.Mount(serverhttp.GroupCharts, chart.Routes(&log, testutils.NewEmptyBackend(true)))
 	})
 
 	w := httptest.NewRecorder()
@@ -57,7 +57,7 @@ func TestGetChart_BadChartID(t *testing.T) {
 	log := zerolog.New(os.Stderr)
 	router := chi.NewRouter()
 	router.Route(serverhttp.GroupV0, func(router chi.Router) {
-		router.Mount(serverhttp.GroupCharts, chart.Routes(&log, nil, 0))
+		router.Mount(serverhttp.GroupCharts, chart.Routes(&log, testutils.NewEmptyBackend(true)))
 	})
 
 	w := httptest.NewRecorder()

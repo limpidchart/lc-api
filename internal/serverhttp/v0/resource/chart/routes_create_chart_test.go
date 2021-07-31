@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"fmt"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -17,9 +16,8 @@ import (
 	"github.com/rs/zerolog"
 	"github.com/stretchr/testify/assert"
 
+	"github.com/limpidchart/lc-api/internal/backend"
 	"github.com/limpidchart/lc-api/internal/config"
-	"github.com/limpidchart/lc-api/internal/render/github.com/limpidchart/lc-proto/render/v0"
-	"github.com/limpidchart/lc-api/internal/renderer"
 	"github.com/limpidchart/lc-api/internal/serverhttp"
 	"github.com/limpidchart/lc-api/internal/serverhttp/v0/resource/chart"
 	"github.com/limpidchart/lc-api/internal/serverhttp/v0/view"
@@ -29,7 +27,7 @@ import (
 const testingRendererEnvTimeoutSecs = 5
 
 type testingRendererEnv struct {
-	rendererClient render.ChartRendererClient
+	chartRendererServer *testutils.TestingChartRendererServer
 }
 
 type testingRendererEnvOpts struct {
@@ -38,7 +36,7 @@ type testingRendererEnvOpts struct {
 	rendererLatency   time.Duration
 }
 
-func newTestingRendererEnv(ctx context.Context, t *testing.T, opts testingRendererEnvOpts) (*testingRendererEnv, error) {
+func newTestingRendererEnv(ctx context.Context, t *testing.T, opts testingRendererEnvOpts) *testingRendererEnv {
 	t.Helper()
 
 	chartRendererServer, err := testutils.NewTestingChartRendererServer(testutils.Opts{
@@ -47,7 +45,7 @@ func newTestingRendererEnv(ctx context.Context, t *testing.T, opts testingRender
 		Latency:   opts.rendererLatency,
 	})
 	if err != nil {
-		return nil, fmt.Errorf("unable to configure testing lc-renderer server: %w", err)
+		t.Fatalf("unable to configure testing lc-renderer server: %s", err)
 	}
 
 	go func() {
@@ -58,21 +56,11 @@ func newTestingRendererEnv(ctx context.Context, t *testing.T, opts testingRender
 		}
 	}()
 
-	// nolint: exhaustivestruct
-	cfg := config.Config{
-		Renderer: config.RendererConfig{
-			Address:               chartRendererServer.Address(),
-			ConnTimeoutSeconds:    testutils.RendererConnTimeoutSecs,
-			RequestTimeoutSeconds: testutils.RendererRequestTimeoutSecs,
-		},
-	}
+	return &testingRendererEnv{chartRendererServer}
+}
 
-	rendererConn, err := renderer.NewConn(context.Background(), cfg.Renderer)
-	if err != nil {
-		return nil, fmt.Errorf("unable to create a connection to testing lc-renderer: %w", err)
-	}
-
-	return &testingRendererEnv{render.NewChartRendererClient(rendererConn)}, nil
+func (tre *testingRendererEnv) address() string {
+	return tre.chartRendererServer.Address()
 }
 
 func verticalAndLineChartRequest(t *testing.T) []byte {
@@ -124,19 +112,25 @@ func TestCreateChart_VerticalAndLineOK(t *testing.T) {
 	chartData := []byte(`<svg>vertical_and_line</svg>`)
 	chartDataEncoded := "PHN2Zz52ZXJ0aWNhbF9hbmRfbGluZTwvc3ZnPg=="
 
-	testingRendererEnv, err := newTestingRendererEnv(ctx, t, testingRendererEnvOpts{
+	tre := newTestingRendererEnv(ctx, t, testingRendererEnvOpts{
 		rendererChartData: chartData,
 		rendererFailMsg:   "",
 		rendererLatency:   time.Millisecond * 100,
 	})
+
+	b, err := backend.NewBackend(ctx, config.RendererConfig{
+		Address:               tre.address(),
+		ConnTimeoutSeconds:    testutils.RendererConnTimeoutSecs,
+		RequestTimeoutSeconds: testutils.RendererRequestTimeoutSecs,
+	})
 	if err != nil {
-		t.Fatalf("unable to start testing renderer environment: %s", err)
+		t.Fatalf("unable to configure backend: %s", err)
 	}
 
 	log := zerolog.New(os.Stderr)
 	router := chi.NewRouter()
 	router.Route(serverhttp.GroupV0, func(router chi.Router) {
-		router.Mount(serverhttp.GroupCharts, chart.Routes(&log, testingRendererEnv.rendererClient, time.Second*time.Duration(testutils.RendererRequestTimeoutSecs)))
+		router.Mount(serverhttp.GroupCharts, chart.Routes(&log, b))
 	})
 
 	w := httptest.NewRecorder()
@@ -188,19 +182,25 @@ func TestCreateChart_ErrTimeout(t *testing.T) {
 
 	chartData := []byte("wont_happen")
 
-	testingRendererEnv, err := newTestingRendererEnv(ctx, t, testingRendererEnvOpts{
+	tre := newTestingRendererEnv(ctx, t, testingRendererEnvOpts{
 		rendererChartData: chartData,
 		rendererFailMsg:   "",
 		rendererLatency:   time.Minute,
 	})
+
+	b, err := backend.NewBackend(ctx, config.RendererConfig{
+		Address:               tre.address(),
+		ConnTimeoutSeconds:    testutils.RendererConnTimeoutSecs,
+		RequestTimeoutSeconds: testutils.RendererRequestTimeoutSecs,
+	})
 	if err != nil {
-		t.Fatalf("unable to start testing renderer environment: %s", err)
+		t.Fatalf("unable to configure backend: %s", err)
 	}
 
 	log := zerolog.New(os.Stderr)
 	router := chi.NewRouter()
 	router.Route(serverhttp.GroupV0, func(router chi.Router) {
-		router.Mount(serverhttp.GroupCharts, chart.Routes(&log, testingRendererEnv.rendererClient, time.Second*time.Duration(testutils.RendererRequestTimeoutSecs)))
+		router.Mount(serverhttp.GroupCharts, chart.Routes(&log, b))
 	})
 
 	w := httptest.NewRecorder()
@@ -234,19 +234,25 @@ func TestCreateChart_ErrNoAxes(t *testing.T) {
 
 	chartData := []byte("bad_axes")
 
-	testingRendererEnv, err := newTestingRendererEnv(ctx, t, testingRendererEnvOpts{
+	tre := newTestingRendererEnv(ctx, t, testingRendererEnvOpts{
 		rendererChartData: chartData,
 		rendererFailMsg:   "",
 		rendererLatency:   time.Minute,
 	})
+
+	b, err := backend.NewBackend(ctx, config.RendererConfig{
+		Address:               tre.address(),
+		ConnTimeoutSeconds:    testutils.RendererConnTimeoutSecs,
+		RequestTimeoutSeconds: testutils.RendererRequestTimeoutSecs,
+	})
 	if err != nil {
-		t.Fatalf("unable to start testing renderer environment: %s", err)
+		t.Fatalf("unable to configure backend: %s", err)
 	}
 
 	log := zerolog.New(os.Stderr)
 	router := chi.NewRouter()
 	router.Route(serverhttp.GroupV0, func(router chi.Router) {
-		router.Mount(serverhttp.GroupCharts, chart.Routes(&log, testingRendererEnv.rendererClient, time.Second*time.Duration(testutils.RendererRequestTimeoutSecs)))
+		router.Mount(serverhttp.GroupCharts, chart.Routes(&log, b))
 	})
 
 	w := httptest.NewRecorder()
@@ -280,19 +286,25 @@ func TestCreateChart_ErrBadJSON(t *testing.T) {
 
 	chartData := []byte("bad_json")
 
-	testingRendererEnv, err := newTestingRendererEnv(ctx, t, testingRendererEnvOpts{
+	tre := newTestingRendererEnv(ctx, t, testingRendererEnvOpts{
 		rendererChartData: chartData,
 		rendererFailMsg:   "",
 		rendererLatency:   time.Minute,
 	})
+
+	b, err := backend.NewBackend(ctx, config.RendererConfig{
+		Address:               tre.address(),
+		ConnTimeoutSeconds:    testutils.RendererConnTimeoutSecs,
+		RequestTimeoutSeconds: testutils.RendererRequestTimeoutSecs,
+	})
 	if err != nil {
-		t.Fatalf("unable to start testing renderer environment: %s", err)
+		t.Fatalf("unable to configure backend: %s", err)
 	}
 
 	log := zerolog.New(os.Stderr)
 	router := chi.NewRouter()
 	router.Route(serverhttp.GroupV0, func(router chi.Router) {
-		router.Mount(serverhttp.GroupCharts, chart.Routes(&log, testingRendererEnv.rendererClient, time.Second*time.Duration(testutils.RendererRequestTimeoutSecs)))
+		router.Mount(serverhttp.GroupCharts, chart.Routes(&log, b))
 	})
 
 	w := httptest.NewRecorder()

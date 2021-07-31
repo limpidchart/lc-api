@@ -4,21 +4,21 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-	"time"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/rs/zerolog"
 
-	"github.com/limpidchart/lc-api/internal/render/github.com/limpidchart/lc-proto/render/v0"
+	"github.com/limpidchart/lc-api/internal/backend"
 	"github.com/limpidchart/lc-api/internal/renderer"
 	"github.com/limpidchart/lc-api/internal/serverhttp/v0/middleware"
 	"github.com/limpidchart/lc-api/internal/serverhttp/v0/view"
 )
 
 // Routes implements HTTP handler for charts requests.
-func Routes(log *zerolog.Logger, rendererClient render.ChartRendererClient, rendererReqTimeout time.Duration) http.Handler {
+func Routes(log *zerolog.Logger, b backend.Backend) http.Handler {
 	r := chi.NewRouter().
 		With(middleware.Recover(log)).
+		With(middleware.BackendCheck(log, b)).
 		With(middleware.SetRequestID(log)).
 		With(middleware.RequestLogger(log))
 
@@ -36,7 +36,7 @@ func Routes(log *zerolog.Logger, rendererClient render.ChartRendererClient, rend
 	//   201: chartRepr
 	r.
 		With(middleware.RequireCreateChartParams(log)).
-		Post("/", createChartHandler(log, rendererClient, rendererReqTimeout))
+		Post("/", createChartHandler(log, b))
 
 	// swagger:route GET /charts/{chart_id} Charts getChart
 	//
@@ -71,7 +71,7 @@ func Routes(log *zerolog.Logger, rendererClient render.ChartRendererClient, rend
 	return r
 }
 
-func createChartHandler(log *zerolog.Logger, rendererClient render.ChartRendererClient, rendererReqTimeout time.Duration) func(w http.ResponseWriter, r *http.Request) {
+func createChartHandler(log *zerolog.Logger, b backend.Backend) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		reqID := middleware.GetRequestID(r.Context())
 		log := log.With().Str(middleware.RequestIDLogKey, reqID).Logger()
@@ -88,8 +88,8 @@ func createChartHandler(log *zerolog.Logger, rendererClient render.ChartRenderer
 		res, err := renderer.CreateChart(r.Context(), renderer.CreateChartOpts{
 			RequestID:      reqID,
 			Request:        createChartRequest,
-			RendererClient: rendererClient,
-			Timeout:        rendererReqTimeout,
+			RendererClient: b.RendererClient(),
+			Timeout:        b.RendererRequestTimeout(),
 		})
 
 		switch {
