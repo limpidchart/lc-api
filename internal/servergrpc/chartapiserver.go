@@ -12,9 +12,11 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
+	"github.com/limpidchart/lc-api/internal/backend"
 	"github.com/limpidchart/lc-api/internal/config"
 	"github.com/limpidchart/lc-api/internal/render/github.com/limpidchart/lc-proto/render/v0"
 	"github.com/limpidchart/lc-api/internal/renderer"
+	"github.com/limpidchart/lc-api/internal/servergrpc/interceptor"
 	"github.com/limpidchart/lc-api/internal/tcputils"
 )
 
@@ -30,24 +32,29 @@ type Server struct {
 }
 
 // NewServer configures a new Server.
-func NewServer(log *zerolog.Logger, cfg config.GRPCConfig, rendererClient render.ChartRendererClient, rendererReqTimeout int) (*Server, error) {
-	listener, err := tcputils.Listener(cfg.Address)
+func NewServer(log *zerolog.Logger, b backend.Backend, gRPCCfg config.GRPCConfig) (*Server, error) {
+	listener, err := tcputils.Listener(gRPCCfg.Address)
 	if err != nil {
-		return nil, fmt.Errorf("failed to start lc-api TCP listener: %w", err)
+		return nil, fmt.Errorf("failed to start lc-api gRPC TCP listener: %w", err)
 	}
 
 	grpcServer := grpc.NewServer(
-		grpc.ChainUnaryInterceptor(recoverInterceptor(log), requestIDInterceptor(), loggerInterceptor(log)),
+		grpc.ChainUnaryInterceptor(
+			interceptor.Recover(log),
+			interceptor.BackendCheck(log, b),
+			interceptor.SetRequestID(),
+			interceptor.Logger(log),
+		),
 	)
 
 	// nolint: exhaustivestruct
 	chartAPIServer := &Server{
 		log:                log,
 		grpcServer:         grpcServer,
-		shutdownTimeout:    time.Second * time.Duration(cfg.ShutdownTimeoutSeconds),
+		shutdownTimeout:    time.Second * time.Duration(gRPCCfg.ShutdownTimeoutSeconds),
 		listener:           listener,
-		rendererClient:     rendererClient,
-		rendererReqTimeout: time.Second * time.Duration(rendererReqTimeout),
+		rendererClient:     b.RendererClient(),
+		rendererReqTimeout: b.RendererRequestTimeout(),
 	}
 
 	render.RegisterChartAPIServer(grpcServer, chartAPIServer)
@@ -60,7 +67,7 @@ func (s *Server) Address() string {
 	return s.listener.Addr().String()
 }
 
-// Serve start gRPC server to serve requests.
+// Serve starts gRPC server to serve requests.
 func (s *Server) Serve(ctx context.Context) error {
 	serveErr := make(chan error)
 
@@ -114,7 +121,7 @@ func (s *Server) Serve(ctx context.Context) error {
 //
 // nolint: wrapcheck
 func (s *Server) CreateChart(ctx context.Context, req *render.CreateChartRequest) (*render.ChartReply, error) {
-	reqID := getRequestID(ctx)
+	reqID := interceptor.GetRequestID(ctx)
 
 	res, err := renderer.CreateChart(ctx, renderer.CreateChartOpts{
 		RequestID:      reqID,
@@ -127,7 +134,7 @@ func (s *Server) CreateChart(ctx context.Context, req *render.CreateChartRequest
 	case err == nil:
 		return res, nil
 	case errors.Is(err, renderer.ErrGenerateChartIDFailed):
-		return nil, internalError()
+		return nil, interceptor.InternalError()
 	case errors.Is(err, renderer.ErrCreateChartRequestCancelled):
 		return nil, status.Error(codes.Canceled, err.Error())
 	default:
@@ -139,9 +146,4 @@ func (s *Server) CreateChart(ctx context.Context, req *render.CreateChartRequest
 // It returns codes.NotFound until storage is implemented.
 func (s *Server) GetChart(_ context.Context, req *render.GetChartRequest) (*render.ChartReply, error) {
 	return nil, status.Errorf(codes.NotFound, "chart %s is not found", req.ChartId)
-}
-
-func internalError() error {
-	// nolint: wrapcheck
-	return status.Error(codes.Internal, "server is unable to handle the request")
 }

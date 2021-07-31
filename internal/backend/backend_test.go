@@ -1,4 +1,4 @@
-package renderer_test
+package backend_test
 
 import (
 	"context"
@@ -7,12 +7,14 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
+	"github.com/limpidchart/lc-api/internal/backend"
 	"github.com/limpidchart/lc-api/internal/config"
-	"github.com/limpidchart/lc-api/internal/renderer"
 	"github.com/limpidchart/lc-api/internal/testutils"
 )
 
-func TestNewConn(t *testing.T) {
+func TestBackend(t *testing.T) {
+	t.Parallel()
+
 	chartRendererServer, err := testutils.NewTestingChartRendererServer(testutils.Opts{
 		ChartData: nil,
 		FailMsg:   "",
@@ -39,7 +41,9 @@ func TestNewConn(t *testing.T) {
 		RequestTimeoutSeconds: testutils.RendererRequestTimeoutSecs,
 	}
 
-	chartRendererConn, err := renderer.NewConn(context.Background(), rendererCfg)
+	b, err := backend.NewBackend(context.Background(), rendererCfg)
 	assert.NoError(t, err)
-	assert.NotEmpty(t, chartRendererConn)
+	assert.NotEmpty(t, b.RendererClient())
+	assert.True(t, b.IsHealthy())
+	assert.Equal(t, rendererCfg.RequestTimeoutSeconds, int(b.RendererRequestTimeout().Seconds()))
 }

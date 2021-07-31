@@ -1,4 +1,4 @@
-package servergrpc
+package interceptor
 
 import (
 	"context"
@@ -15,7 +15,8 @@ const ctxRequestID ctxKey = iota
 // ErrGenerateRequestIDFailed contains error message about failed request ID generation.
 var ErrGenerateRequestIDFailed = errors.New("unable to generate a random UUID for chart ID")
 
-func requestIDInterceptor() grpc.UnaryServerInterceptor {
+// SetRequestID generates and sets request ID into context.
+func SetRequestID() grpc.UnaryServerInterceptor {
 	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
 		reqID, err := uuid.NewRandom()
 		if err != nil {
@@ -28,7 +29,8 @@ func requestIDInterceptor() grpc.UnaryServerInterceptor {
 	}
 }
 
-func getRequestID(ctx context.Context) string {
+// GetRequestID returns request ID from context.
+func GetRequestID(ctx context.Context) string {
 	if reqID, ok := ctx.Value(ctxRequestID).(string); ok {
 		return reqID
 	}

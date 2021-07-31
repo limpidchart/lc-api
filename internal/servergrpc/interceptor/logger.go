@@ -1,4 +1,4 @@
-package servergrpc
+package interceptor
 
 import (
 	"context"
@@ -22,10 +22,11 @@ const (
 
 const unknownIP = "unknown"
 
-func loggerInterceptor(log *zerolog.Logger) grpc.UnaryServerInterceptor {
+// Logger represents interceptor to log info about gRPC requests.
+func Logger(log *zerolog.Logger) grpc.UnaryServerInterceptor {
 	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
 		startTime := time.Now().UTC()
-		reqID := getRequestID(ctx)
+		reqID := GetRequestID(ctx)
 
 		resp, err := handler(ctx, req)
 		if err != nil {

@@ -40,7 +40,7 @@ func NewConn(ctx context.Context, rendererCfg config.RendererConfig) (*grpc.Clie
 		grpc.WithDefaultServiceConfig(rendererServiceCfg),
 	)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create connection to lc-renderer: %w", err)
+		return nil, fmt.Errorf("lc-renderer gRPC dial failed: %w", err)
 	}
 
 	return rendererConn, nil

@@ -13,7 +13,9 @@ const (
 	gRPCAddressDefault             = "0.0.0.0:54010"
 	gRPCShutdownTimeoutSecsDefault = 5
 
-	httpAddressDefault             = "0.0.0.0:54011"
+	gRPCHealthCheckAddressDefault = "0.0.0.0:54011"
+
+	httpAddressDefault             = "0.0.0.0:54012"
 	httpShutdownTimeoutSecsDefault = 5
 	httpReadTimeoutSecsDefault     = 5
 	httpWriteTimeoutSecsDefault    = 10
@@ -28,6 +30,8 @@ const (
 	gRPCAddressEnv             = "LC_API_GRPC_ADDRESS"
 	gRPCShutdownTimeoutSecsEnv = "LC_API_GRPC_SHUTDOWN_TIMEOUT"
 
+	gRPCHealthCheckAddressEnv = "LC_API_GRPC_HEALTH_CHECK_ADDRESS"
+
 	httpAddressEnv             = "LC_API_HTTP_ADDRESS"
 	httpShutdownTimeoutSecsEnv = "LC_API_HTTP_SHUTDOWN_TIMEOUT"
 	httpReadTimeoutSecsEnv     = "LC_API_HTTP_READ_TIMEOUT"
@@ -37,9 +41,10 @@ const (
 
 // Config represents application config.
 type Config struct {
-	Renderer RendererConfig
-	GRPC     GRPCConfig
-	HTTP     HTTPConfig
+	Renderer        RendererConfig
+	GRPC            GRPCConfig
+	GRPCHealthCheck GRPCHealthCheckConfig
+	HTTP            HTTPConfig
 }
 
 // RendererConfig contains lc-renderer related configuration.
@@ -53,6 +58,11 @@ type RendererConfig struct {
 type GRPCConfig struct {
 	Address                string
 	ShutdownTimeoutSeconds int
+}
+
+// GRPCHealthCheckConfig contains lc-api gRPC health check related configuration.
+type GRPCHealthCheckConfig struct {
+	Address string
 }
 
 // HTTPConfig contains lc-api HTTP related configuration.
@@ -75,6 +85,9 @@ func NewFromEnv() Config {
 		GRPC: GRPCConfig{
 			Address:                stringValFromEnvOrDefault(gRPCAddressEnv, gRPCAddressDefault),
 			ShutdownTimeoutSeconds: intValFromEnvOrDefault(gRPCShutdownTimeoutSecsEnv, gRPCShutdownTimeoutSecsDefault),
+		},
+		GRPCHealthCheck: GRPCHealthCheckConfig{
+			Address: stringValFromEnvOrDefault(gRPCHealthCheckAddressEnv, gRPCHealthCheckAddressDefault),
 		},
 		HTTP: HTTPConfig{
 			Address:                stringValFromEnvOrDefault(httpAddressEnv, httpAddressDefault),

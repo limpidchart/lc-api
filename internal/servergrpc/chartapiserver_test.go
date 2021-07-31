@@ -2,7 +2,6 @@ package servergrpc_test
 
 import (
 	"context"
-	"fmt"
 	"os"
 	"testing"
 	"time"
@@ -13,9 +12,9 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
+	"github.com/limpidchart/lc-api/internal/backend"
 	"github.com/limpidchart/lc-api/internal/config"
 	"github.com/limpidchart/lc-api/internal/render/github.com/limpidchart/lc-proto/render/v0"
-	"github.com/limpidchart/lc-api/internal/renderer"
 	"github.com/limpidchart/lc-api/internal/servergrpc"
 	"github.com/limpidchart/lc-api/internal/tcputils"
 	"github.com/limpidchart/lc-api/internal/testutils"
@@ -36,7 +35,7 @@ type testingChartAPIEnvOpts struct {
 	rendererLatency   time.Duration
 }
 
-func newTestingChartAPIEnv(ctx context.Context, t *testing.T, opts testingChartAPIEnvOpts) (*testingChartAPIEnv, error) {
+func newTestingChartAPIEnv(ctx context.Context, t *testing.T, opts testingChartAPIEnvOpts) *testingChartAPIEnv {
 	t.Helper()
 
 	chartRendererServer, err := testutils.NewTestingChartRendererServer(testutils.Opts{
@@ -45,7 +44,7 @@ func newTestingChartAPIEnv(ctx context.Context, t *testing.T, opts testingChartA
 		Latency:   opts.rendererLatency,
 	})
 	if err != nil {
-		return nil, fmt.Errorf("unable to configure testing lc-renderer server: %w", err)
+		t.Fatalf("unable to configure testing lc-renderer server: %s", err)
 	}
 
 	go func() {
@@ -70,19 +69,22 @@ func newTestingChartAPIEnv(ctx context.Context, t *testing.T, opts testingChartA
 		},
 	}
 
-	rendererConn, err := renderer.NewConn(context.Background(), cfg.Renderer)
+	b, err := backend.NewBackend(ctx, config.RendererConfig{
+		Address:               chartRendererServer.Address(),
+		ConnTimeoutSeconds:    testutils.RendererConnTimeoutSecs,
+		RequestTimeoutSeconds: testutils.RendererRequestTimeoutSecs,
+	})
 	if err != nil {
-		return nil, fmt.Errorf("unable to create a connection to testing lc-renderer: %w", err)
+		t.Fatalf("unable to configure backend: %s", err)
 	}
 
 	chartAPIServer, err := servergrpc.NewServer(
 		&log,
+		b,
 		cfg.GRPC,
-		render.NewChartRendererClient(rendererConn),
-		cfg.Renderer.RequestTimeoutSeconds,
 	)
 	if err != nil {
-		return nil, fmt.Errorf("unable to configure testing lc-api server: %w", err)
+		t.Fatalf("unable to configure testing lc-api server: %s", err)
 	}
 
 	go func() {
@@ -95,12 +97,12 @@ func newTestingChartAPIEnv(ctx context.Context, t *testing.T, opts testingChartA
 
 	chartAPIServerConn, err := grpc.DialContext(ctx, chartAPIServer.Address(), grpc.WithInsecure(), grpc.WithBlock())
 	if err != nil {
-		return nil, fmt.Errorf("unable to create connection to testing lc-api server: %w", err)
+		t.Fatalf("unable to create connection to testing lc-api server: %s", err)
 	}
 
 	return &testingChartAPIEnv{
 		chartAPIServerConn: chartAPIServerConn,
-	}, nil
+	}
 }
 
 func TestCreateChart_OK(t *testing.T) {
@@ -111,14 +113,11 @@ func TestCreateChart_OK(t *testing.T) {
 
 	chartData := []byte("chart svg")
 
-	testingChartAPIEnv, err := newTestingChartAPIEnv(ctx, t, testingChartAPIEnvOpts{
+	testingChartAPIEnv := newTestingChartAPIEnv(ctx, t, testingChartAPIEnvOpts{
 		rendererChartData: chartData,
 		rendererFailMsg:   "",
 		rendererLatency:   time.Millisecond * 100,
 	})
-	if err != nil {
-		t.Fatalf("unable to start testing chart API environment: %s", err)
-	}
 
 	chartAPIClient := render.NewChartAPIClient(testingChartAPIEnv.chartAPIServerConn)
 	req := testutils.NewCreateChartRequest().
@@ -163,14 +162,11 @@ func TestCreateChart_ConvertErrs(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*testingChartAPIEnvTimeoutSecs)
 	defer cancel()
 
-	testingChartAPIEnv, err := newTestingChartAPIEnv(ctx, t, testingChartAPIEnvOpts{
+	testingChartAPIEnv := newTestingChartAPIEnv(ctx, t, testingChartAPIEnvOpts{
 		rendererChartData: nil,
 		rendererFailMsg:   "",
 		rendererLatency:   time.Millisecond * 200,
 	})
-	if err != nil {
-		t.Fatalf("unable to start testing chart API environment: %s", err)
-	}
 
 	chartAPIClient := render.NewChartAPIClient(testingChartAPIEnv.chartAPIServerConn)
 
@@ -193,14 +189,11 @@ func TestCreateChart_RendererFailed(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*testingChartAPIEnvTimeoutSecs)
 	defer cancel()
 
-	testingChartAPIEnv, err := newTestingChartAPIEnv(ctx, t, testingChartAPIEnvOpts{
+	testingChartAPIEnv := newTestingChartAPIEnv(ctx, t, testingChartAPIEnvOpts{
 		rendererChartData: nil,
 		rendererFailMsg:   errMsg,
 		rendererLatency:   time.Millisecond * 500,
 	})
-	if err != nil {
-		t.Fatalf("unable to start testing chart API environment: %s", err)
-	}
 
 	chartAPIClient := render.NewChartAPIClient(testingChartAPIEnv.chartAPIServerConn)
 	req := testutils.NewCreateChartRequest().
@@ -222,14 +215,11 @@ func TestCreateChart_RendererTooLong(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*testingChartAPIEnvTimeoutSecs)
 	defer cancel()
 
-	testingChartAPIEnv, err := newTestingChartAPIEnv(ctx, t, testingChartAPIEnvOpts{
+	testingChartAPIEnv := newTestingChartAPIEnv(ctx, t, testingChartAPIEnvOpts{
 		rendererChartData: nil,
 		rendererFailMsg:   "",
 		rendererLatency:   time.Hour,
 	})
-	if err != nil {
-		t.Fatalf("unable to start testing chart API environment: %s", err)
-	}
 
 	chartAPIClient := render.NewChartAPIClient(testingChartAPIEnv.chartAPIServerConn)
 	req := testutils.NewCreateChartRequest().
@@ -255,14 +245,11 @@ func TestGetChart_NotFound(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*testingChartAPIEnvTimeoutSecs)
 	defer cancel()
 
-	testingChartAPIEnv, err := newTestingChartAPIEnv(ctx, t, testingChartAPIEnvOpts{
+	testingChartAPIEnv := newTestingChartAPIEnv(ctx, t, testingChartAPIEnvOpts{
 		rendererChartData: nil,
 		rendererFailMsg:   "",
 		rendererLatency:   time.Second,
 	})
-	if err != nil {
-		t.Fatalf("unable to start testing chart API environment: %s", err)
-	}
 
 	chartAPIClient := render.NewChartAPIClient(testingChartAPIEnv.chartAPIServerConn)
 

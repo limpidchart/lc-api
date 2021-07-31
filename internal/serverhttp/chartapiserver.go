@@ -9,8 +9,8 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/rs/zerolog"
 
+	"github.com/limpidchart/lc-api/internal/backend"
 	"github.com/limpidchart/lc-api/internal/config"
-	"github.com/limpidchart/lc-api/internal/render/github.com/limpidchart/lc-proto/render/v0"
 	"github.com/limpidchart/lc-api/internal/serverhttp/v0/resource/chart"
 )
 
@@ -30,18 +30,18 @@ type Server struct {
 }
 
 // NewServer configures a new Server.
-func NewServer(log *zerolog.Logger, cfg config.HTTPConfig, rendererClient render.ChartRendererClient, rendererReqTimeout int) *Server {
+func NewServer(log *zerolog.Logger, b backend.Backend, httpCfg config.HTTPConfig) *Server {
 	return &Server{
 		// nolint: exhaustivestruct
 		httpServer: &http.Server{
-			Addr:         cfg.Address,
-			ReadTimeout:  time.Duration(cfg.ReadTimeoutSeconds) * time.Second,
-			WriteTimeout: time.Duration(cfg.WriteTimeoutSeconds) * time.Second,
-			IdleTimeout:  time.Duration(cfg.IdleTimeoutSeconds) * time.Second,
-			Handler:      routes(log, rendererClient, time.Second*time.Duration(rendererReqTimeout)),
+			Addr:         httpCfg.Address,
+			ReadTimeout:  time.Duration(httpCfg.ReadTimeoutSeconds) * time.Second,
+			WriteTimeout: time.Duration(httpCfg.WriteTimeoutSeconds) * time.Second,
+			IdleTimeout:  time.Duration(httpCfg.IdleTimeoutSeconds) * time.Second,
+			Handler:      routes(log, b),
 		},
 		log:             log,
-		shutdownTimeout: time.Duration(cfg.ShutdownTimeoutSeconds) * time.Second,
+		shutdownTimeout: time.Duration(httpCfg.ShutdownTimeoutSeconds) * time.Second,
 	}
 }
 
@@ -81,11 +81,11 @@ func (s *Server) Serve(ctx context.Context) error {
 	}
 }
 
-func routes(log *zerolog.Logger, rendererClient render.ChartRendererClient, rendererReqTimeout time.Duration) chi.Router {
+func routes(log *zerolog.Logger, b backend.Backend) chi.Router {
 	r := chi.NewRouter()
 
 	r.Route(GroupV0, func(r chi.Router) {
-		r.Mount(GroupCharts, chart.Routes(log, rendererClient, rendererReqTimeout))
+		r.Mount(GroupCharts, chart.Routes(log, b))
 	})
 
 	return r
