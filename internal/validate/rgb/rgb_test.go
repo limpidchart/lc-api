@@ -20,7 +20,7 @@ func TestChartElementColor(t *testing.T) {
 		expectedErr       error
 	}{
 		{
-			"good rgb",
+			"good_rgb",
 			&render.ChartElementColor{
 				ColorValue: &render.ChartElementColor_ColorRgb{
 					ColorRgb: &render.ChartElementColor_RGB{
@@ -95,7 +95,7 @@ func TestValidateChartElementColorJSON(t *testing.T) {
 		expectedErr       error
 	}{
 		{
-			"good rgb",
+			"good_rgb",
 			&view.ChartElementColor{
 				Hex: "",
 				RGB: &view.RGB{

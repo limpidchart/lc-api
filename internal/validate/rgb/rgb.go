@@ -14,7 +14,7 @@ const (
 )
 
 // ErrChartElementColorRGBBadValue contains error message about bad RGB value.
-var ErrChartElementColorRGBBadValue = fmt.Errorf("chart element color RGB value should be between %d and %d if it's set", minValue, maxValue)
+var ErrChartElementColorRGBBadValue = fmt.Errorf("rgb value should be between %d and %d if it's set", minValue, maxValue)
 
 // ValidateChartElementColor validates if chart element color can be used as RGB color.
 func ValidateChartElementColor(chartElementColor *render.ChartElementColor) error {
@@ -24,18 +24,22 @@ func ValidateChartElementColor(chartElementColor *render.ChartElementColor) erro
 		return nil
 	}
 
-	if err := uint32ColorValue(colorRGB.R); err != nil {
+	if _, err := intColorValue(int(colorRGB.R)); err != nil {
 		return err
 	}
 
-	if err := uint32ColorValue(colorRGB.G); err != nil {
+	if _, err := intColorValue(int(colorRGB.G)); err != nil {
 		return err
 	}
 
-	return uint32ColorValue(colorRGB.B)
+	if _, err := intColorValue(int(colorRGB.B)); err != nil {
+		return err
+	}
+
+	return nil
 }
 
-// ValidateChartElementColorJSON parses and validates chart element color JSON representation.
+// ValidateChartElementColorJSON parses and validates chart element RGB color JSON representation.
 func ValidateChartElementColorJSON(color *view.ChartElementColor) (*render.ChartElementColor, error) {
 	r, err := intColorValue(color.RGB.R)
 	if err != nil {
@@ -61,14 +65,6 @@ func ValidateChartElementColorJSON(color *view.ChartElementColor) (*render.Chart
 			},
 		},
 	}, nil
-}
-
-func uint32ColorValue(value uint32) error {
-	if value < minValue || value > maxValue {
-		return ErrChartElementColorRGBBadValue
-	}
-
-	return nil
 }
 
 func intColorValue(value int) (uint32, error) {

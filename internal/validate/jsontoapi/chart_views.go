@@ -255,21 +255,12 @@ func barsValuesFromJSON(jsonView *view.ChartView) (*render.ChartViewBarsValues, 
 	barsDatasets := make([]*render.ChartViewBarsValues_BarsDataset, 0, len(jsonView.BarsValues))
 
 	for _, barsValue := range jsonView.BarsValues {
-		fillColor, err := chartElementColorFromJSON(barsValue.FillColor)
+		barsDataset, err := chartBarsValuesColorsFromJSON(barsValue)
 		if err != nil {
 			return nil, err
 		}
 
-		strokeColor, err := chartElementColorFromJSON(barsValue.StrokeColor)
-		if err != nil {
-			return nil, err
-		}
-
-		barsDatasets = append(barsDatasets, &render.ChartViewBarsValues_BarsDataset{
-			Values:      barsValue.Values,
-			FillColor:   fillColor,
-			StrokeColor: strokeColor,
-		})
+		barsDatasets = append(barsDatasets, barsDataset)
 	}
 
 	return &render.ChartViewBarsValues{

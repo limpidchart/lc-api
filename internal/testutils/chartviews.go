@@ -8,22 +8,22 @@ import (
 
 func ColorsDefault() *render.ChartViewColors {
 	return &render.ChartViewColors{
-		FillColor: &render.ChartElementColor{
+		Fill: &render.ChartElementColor{
 			ColorValue: &render.ChartElementColor_ColorHex{
 				ColorHex: "#71c7ec",
 			},
 		},
-		StrokeColor: &render.ChartElementColor{
+		Stroke: &render.ChartElementColor{
 			ColorValue: &render.ChartElementColor_ColorHex{
 				ColorHex: "#005073",
 			},
 		},
-		PointFillColor: &render.ChartElementColor{
+		PointFill: &render.ChartElementColor{
 			ColorValue: &render.ChartElementColor_ColorHex{
 				ColorHex: "#71c7ec",
 			},
 		},
-		PointStrokeColor: &render.ChartElementColor{
+		PointStroke: &render.ChartElementColor{
 			ColorValue: &render.ChartElementColor_ColorHex{
 				ColorHex: "#005073",
 			},
@@ -44,14 +44,16 @@ func NewHorizontalBarView() *ChartView {
 					BarsDatasets: []*render.ChartViewBarsValues_BarsDataset{
 						{
 							Values: []float32{10, 20},
-							FillColor: &render.ChartElementColor{
-								ColorValue: &render.ChartElementColor_ColorHex{
-									ColorHex: "#66b2b2",
+							Colors: &render.ChartViewBarsValues_ChartViewBarsColors{
+								Fill: &render.ChartElementColor{
+									ColorValue: &render.ChartElementColor_ColorHex{
+										ColorHex: "#66b2b2",
+									},
 								},
-							},
-							StrokeColor: &render.ChartElementColor{
-								ColorValue: &render.ChartElementColor_ColorHex{
-									ColorHex: "#004c4c",
+								Stroke: &render.ChartElementColor{
+									ColorValue: &render.ChartElementColor_ColorHex{
+										ColorHex: "#004c4c",
+									},
 								},
 							},
 						},
@@ -148,14 +150,16 @@ func NewVerticalBarView() *ChartView {
 					BarsDatasets: []*render.ChartViewBarsValues_BarsDataset{
 						{
 							Values: []float32{11, 22, 33},
-							FillColor: &render.ChartElementColor{
-								ColorValue: &render.ChartElementColor_ColorHex{
-									ColorHex: "#fff4e6",
+							Colors: &render.ChartViewBarsValues_ChartViewBarsColors{
+								Fill: &render.ChartElementColor{
+									ColorValue: &render.ChartElementColor_ColorHex{
+										ColorHex: "#fff4e6",
+									},
 								},
-							},
-							StrokeColor: &render.ChartElementColor{
-								ColorValue: &render.ChartElementColor_ColorHex{
-									ColorHex: "#3c2f2f",
+								Stroke: &render.ChartElementColor{
+									ColorValue: &render.ChartElementColor_ColorHex{
+										ColorHex: "#3c2f2f",
+									},
 								},
 							},
 						},
@@ -190,12 +194,12 @@ func (v *ChartView) SetFillAndStrokeColor() *ChartView {
 		colors = &render.ChartViewColors{}
 	}
 
-	colors.FillColor = &render.ChartElementColor{
+	colors.Fill = &render.ChartElementColor{
 		ColorValue: &render.ChartElementColor_ColorHex{
 			ColorHex: "#410037",
 		},
 	}
-	colors.StrokeColor = &render.ChartElementColor{
+	colors.Stroke = &render.ChartElementColor{
 		ColorValue: &render.ChartElementColor_ColorHex{
 			ColorHex: "#270021",
 		},
@@ -213,7 +217,7 @@ func (v *ChartView) SetBadFillRGBColor() *ChartView {
 	}
 
 	// nolint: gomnd
-	colors.FillColor = &render.ChartElementColor{
+	colors.Fill = &render.ChartElementColor{
 		ColorValue: &render.ChartElementColor_ColorRgb{
 			ColorRgb: &render.ChartElementColor_RGB{
 				R: 1,

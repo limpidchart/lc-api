@@ -227,23 +227,12 @@ func validateViewBarsValues(chartView *render.ChartView) (*render.ChartView, err
 	fixedBarsDatasets := make([]*render.ChartViewBarsValues_BarsDataset, 0, len(chartView.GetBarsValues().BarsDatasets))
 
 	for _, barsDataset := range chartView.GetBarsValues().BarsDatasets {
-		if barsDataset.FillColor == nil {
-			barsDataset.FillColor = &render.ChartElementColor{
-				ColorValue: &render.ChartElementColor_ColorHex{
-					ColorHex: fillColorDefault,
-				},
-			}
+		fixedBarsDataset, err := validateChartViewBarsDatasetColors(barsDataset)
+		if err != nil {
+			return nil, err
 		}
 
-		if barsDataset.StrokeColor == nil {
-			barsDataset.StrokeColor = &render.ChartElementColor{
-				ColorValue: &render.ChartElementColor_ColorHex{
-					ColorHex: strokeColorDefault,
-				},
-			}
-		}
-
-		fixedBarsDatasets = append(fixedBarsDatasets, barsDataset)
+		fixedBarsDatasets = append(fixedBarsDatasets, fixedBarsDataset)
 	}
 
 	chartView.Values = &render.ChartView_BarsValues{

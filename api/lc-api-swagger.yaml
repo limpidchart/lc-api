@@ -5,10 +5,8 @@ definitions:
   BarsValues:
     description: 'nolint: govet'
     properties:
-      fill_color:
-        $ref: '#/definitions/ChartElementColor'
-      stroke_color:
-        $ref: '#/definitions/ChartElementColor'
+      colors:
+        $ref: '#/definitions/ChartViewBarsColors'
       values:
         description: Values contains bars values.
         items:
@@ -23,30 +21,30 @@ definitions:
     x-go-package: github.com/limpidchart/lc-api/internal/serverhttp/v0/view
   ChartAxes:
     properties:
-      axis_bottom:
+      bottom:
         $ref: '#/definitions/ChartScale'
-      axis_bottom_label:
-        description: AxisBottomLabel represents label for bottom axis.
+      bottom_label:
+        description: BottomLabel represents label for bottom axis.
         type: string
-        x-go-name: AxisBottomLabel
-      axis_left:
+        x-go-name: BottomLabel
+      left:
         $ref: '#/definitions/ChartScale'
-      axis_left_label:
-        description: AxisLeftLabel represents label for left axis.
+      left_label:
+        description: LeftLabel represents label for left axis.
         type: string
-        x-go-name: AxisLeftLabel
-      axis_right:
+        x-go-name: LeftLabel
+      right:
         $ref: '#/definitions/ChartScale'
-      axis_right_label:
-        description: AxisRightLabel represents label for right axis.
+      right_label:
+        description: RightLabel represents label for right axis.
         type: string
-        x-go-name: AxisRightLabel
-      axis_top:
+        x-go-name: RightLabel
+      top:
         $ref: '#/definitions/ChartScale'
-      axis_top_label:
-        description: AxisTopLabel represents label for top axis.
+      top_label:
+        description: TopLabel represents label for top axis.
         type: string
-        x-go-name: AxisTopLabel
+        x-go-name: TopLabel
     title: ChartAxes represents options to configure chart axes.
     type: object
     x-go-package: github.com/limpidchart/lc-api/internal/serverhttp/v0/view
@@ -64,26 +62,26 @@ definitions:
     x-go-package: github.com/limpidchart/lc-api/internal/serverhttp/v0/view
   ChartMargins:
     properties:
-      margin_bottom:
-        description: MarginBottom represents chart bottom margin.
+      bottom:
+        description: Bottom represents chart bottom margin.
         format: int64
         type: integer
-        x-go-name: MarginBottom
-      margin_left:
-        description: MarginLeft represents chart left margin.
+        x-go-name: Bottom
+      left:
+        description: Left represents chart left margin.
         format: int64
         type: integer
-        x-go-name: MarginLeft
-      margin_right:
-        description: MarginRight represents chart right margin.
+        x-go-name: Left
+      right:
+        description: Right represents chart right margin.
         format: int64
         type: integer
-        x-go-name: MarginRight
-      margin_top:
-        description: MarginTop represents chart top margin.
+        x-go-name: Right
+      top:
+        description: Top represents chart top margin.
         format: int64
         type: integer
-        x-go-name: MarginTop
+        x-go-name: Top
     title: ChartMargins represents options to configure chart margins.
     type: object
     x-go-package: github.com/limpidchart/lc-api/internal/serverhttp/v0/view
@@ -227,15 +225,24 @@ definitions:
     title: ChartView represents options to configure chart view.
     type: object
     x-go-package: github.com/limpidchart/lc-api/internal/serverhttp/v0/view
+  ChartViewBarsColors:
+    properties:
+      fill:
+        $ref: '#/definitions/ChartElementColor'
+      stroke:
+        $ref: '#/definitions/ChartElementColor'
+    title: ChartViewBarsColors represents options to configure bars values colors.
+    type: object
+    x-go-package: github.com/limpidchart/lc-api/internal/serverhttp/v0/view
   ChartViewColors:
     properties:
-      fill_color:
+      fill:
         $ref: '#/definitions/ChartElementColor'
-      point_fill_color:
+      point_fill:
         $ref: '#/definitions/ChartElementColor'
-      point_stroke_color:
+      point_stroke:
         $ref: '#/definitions/ChartElementColor'
-      stroke_color:
+      stroke:
         $ref: '#/definitions/ChartElementColor'
     title: ChartViewColors represents view colors parameters.
     type: object
@@ -313,7 +320,7 @@ definitions:
   chartReply:
     properties:
       chart_data:
-        description: ChartData contains chart representation.
+        description: ChartData contains base64 chart representation.
         type: string
         x-go-name: ChartData
       chart_id:
