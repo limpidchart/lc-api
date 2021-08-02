@@ -8,11 +8,16 @@ type BarsValues struct {
 	// required: true
 	Values []float32 `json:"values,omitempty"`
 
-	// FillColor represents bars fill color.
-	FillColor *ChartElementColor `json:"fill_color,omitempty"`
+	Colors *ChartViewBarsColors `json:"colors,omitempty"`
+}
 
-	// StrokeColor represents bars stroke color.
-	StrokeColor *ChartElementColor `json:"stroke_color,omitempty"`
+// ChartViewBarsColors represents options to configure bars values colors.
+type ChartViewBarsColors struct {
+	// Fill represents bars fill color.
+	Fill *ChartElementColor `json:"fill,omitempty"`
+
+	// Stroke represents bars stroke color.
+	Stroke *ChartElementColor `json:"stroke,omitempty"`
 }
 
 // PointsValues represents options for point values.

@@ -69,15 +69,15 @@ type ChartView struct {
 
 // ChartViewColors represents view colors parameters.
 type ChartViewColors struct {
-	// FillColor represents view fill color.
-	FillColor *ChartElementColor `json:"fill_color,omitempty"`
+	// Fill represents view fill color.
+	Fill *ChartElementColor `json:"fill,omitempty"`
 
-	// StrokeColor represents view stroke color.
-	StrokeColor *ChartElementColor `json:"stroke_color,omitempty"`
+	// Stroke represents view stroke color.
+	Stroke *ChartElementColor `json:"stroke,omitempty"`
 
-	// PointFillColor represents view point fill color.
-	PointFillColor *ChartElementColor `json:"point_fill_color,omitempty"`
+	// PointFill represents view point fill color.
+	PointFill *ChartElementColor `json:"point_fill,omitempty"`
 
-	// PointStrokeColor represents view point stroke color.
-	PointStrokeColor *ChartElementColor `json:"point_stroke_color,omitempty"`
+	// PointStroke represents view point stroke color.
+	PointStroke *ChartElementColor `json:"point_stroke,omitempty"`
 }

@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/limpidchart/lc-api/internal/render/github.com/limpidchart/lc-proto/render/v0"
+	"github.com/limpidchart/lc-api/internal/validate/hex"
 	"github.com/limpidchart/lc-api/internal/validate/rgb"
 )
 
@@ -21,32 +22,62 @@ func validateViewColors(chartView *render.ChartView) (*render.ChartView, error) 
 		return chartView, nil
 	}
 
-	fillColor, err := validateChartElementColor(chartView.Colors.FillColor, defaultColors.FillColor)
+	fillColor, err := validateChartElementColor(chartView.Colors.Fill, defaultColors.Fill)
 	if err != nil {
 		return nil, err
 	}
 
-	strokeColor, err := validateChartElementColor(chartView.Colors.StrokeColor, defaultColors.StrokeColor)
+	strokeColor, err := validateChartElementColor(chartView.Colors.Stroke, defaultColors.Stroke)
 	if err != nil {
 		return nil, err
 	}
 
-	pointFillColor, err := validateChartElementColor(chartView.Colors.PointFillColor, defaultColors.PointFillColor)
+	pointFillColor, err := validateChartElementColor(chartView.Colors.PointFill, defaultColors.PointFill)
 	if err != nil {
 		return nil, err
 	}
 
-	pointStrokeColor, err := validateChartElementColor(chartView.Colors.PointStrokeColor, defaultColors.PointStrokeColor)
+	pointStrokeColor, err := validateChartElementColor(chartView.Colors.PointStroke, defaultColors.PointStroke)
 	if err != nil {
 		return nil, err
 	}
 
-	chartView.Colors.FillColor = fillColor
-	chartView.Colors.StrokeColor = strokeColor
-	chartView.Colors.PointFillColor = pointFillColor
-	chartView.Colors.PointStrokeColor = pointStrokeColor
+	chartView.Colors.Fill = fillColor
+	chartView.Colors.Stroke = strokeColor
+	chartView.Colors.PointFill = pointFillColor
+	chartView.Colors.PointStroke = pointStrokeColor
 
 	return chartView, nil
+}
+
+func validateChartViewBarsDatasetColors(chartViewBarsDataset *render.ChartViewBarsValues_BarsDataset) (*render.ChartViewBarsValues_BarsDataset, error) {
+	if chartViewBarsDataset == nil {
+		return nil, nil
+	}
+
+	defaultColors := defaultViewColors()
+
+	if chartViewBarsDataset.Colors == nil {
+		chartViewBarsDataset.Colors.Fill = defaultColors.Fill
+		chartViewBarsDataset.Colors.Stroke = defaultColors.Stroke
+
+		return chartViewBarsDataset, nil
+	}
+
+	fillColor, err := validateChartElementColor(chartViewBarsDataset.Colors.Fill, defaultColors.Fill)
+	if err != nil {
+		return nil, err
+	}
+
+	strokeColor, err := validateChartElementColor(chartViewBarsDataset.Colors.Stroke, defaultColors.Stroke)
+	if err != nil {
+		return nil, err
+	}
+
+	chartViewBarsDataset.Colors.Fill = fillColor
+	chartViewBarsDataset.Colors.Stroke = strokeColor
+
+	return chartViewBarsDataset, nil
 }
 
 func validateChartElementColor(chartElementColor *render.ChartElementColor, defaultColor *render.ChartElementColor) (*render.ChartElementColor, error) {
@@ -59,7 +90,12 @@ func validateChartElementColor(chartElementColor *render.ChartElementColor, defa
 	}
 
 	if chartElementColor.GetColorHex() != "" {
-		return chartElementColor, nil
+		validatedChartElementColor, err := hex.ValidateChartElementColor(chartElementColor)
+		if err != nil {
+			return nil, fmt.Errorf("unable to validate hex chart element color: %w", err)
+		}
+
+		return validatedChartElementColor, nil
 	}
 
 	if err := rgb.ValidateChartElementColor(chartElementColor); err != nil {
@@ -71,22 +107,22 @@ func validateChartElementColor(chartElementColor *render.ChartElementColor, defa
 
 func defaultViewColors() *render.ChartViewColors {
 	return &render.ChartViewColors{
-		FillColor: &render.ChartElementColor{
+		Fill: &render.ChartElementColor{
 			ColorValue: &render.ChartElementColor_ColorHex{
 				ColorHex: fillColorDefault,
 			},
 		},
-		StrokeColor: &render.ChartElementColor{
+		Stroke: &render.ChartElementColor{
 			ColorValue: &render.ChartElementColor_ColorHex{
 				ColorHex: strokeColorDefault,
 			},
 		},
-		PointFillColor: &render.ChartElementColor{
+		PointFill: &render.ChartElementColor{
 			ColorValue: &render.ChartElementColor_ColorHex{
 				ColorHex: fillColorDefault,
 			},
 		},
-		PointStrokeColor: &render.ChartElementColor{
+		PointStroke: &render.ChartElementColor{
 			ColorValue: &render.ChartElementColor_ColorHex{
 				ColorHex: strokeColorDefault,
 			},

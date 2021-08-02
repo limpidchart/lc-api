@@ -13,13 +13,15 @@ func NewJSONVerticalBarView() *JSONChartView {
 			BarsValues: []*view.BarsValues{
 				{
 					Values: []float32{11, 22, 33},
-					FillColor: &view.ChartElementColor{
-						Hex: "#fff4e6",
-						RGB: nil,
-					},
-					StrokeColor: &view.ChartElementColor{
-						Hex: "#3c2f2f",
-						RGB: nil,
+					Colors: &view.ChartViewBarsColors{
+						Fill: &view.ChartElementColor{
+							Hex: "#fff4e6",
+							RGB: nil,
+						},
+						Stroke: &view.ChartElementColor{
+							Hex: "#3c2f2f",
+							RGB: nil,
+						},
 					},
 				},
 			},
@@ -83,13 +85,15 @@ func NewJSONHorizontalBarView() *JSONChartView {
 			BarsValues: []*view.BarsValues{
 				{
 					Values: []float32{10, 20},
-					FillColor: &view.ChartElementColor{
-						Hex: "#66b2b2",
-						RGB: nil,
-					},
-					StrokeColor: &view.ChartElementColor{
-						Hex: "#004c4c",
-						RGB: nil,
+					Colors: &view.ChartViewBarsColors{
+						Fill: &view.ChartElementColor{
+							Hex: "#66b2b2",
+							RGB: nil,
+						},
+						Stroke: &view.ChartElementColor{
+							Hex: "#004c4c",
+							RGB: nil,
+						},
 					},
 				},
 			},
