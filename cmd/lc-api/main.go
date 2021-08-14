@@ -8,10 +8,12 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/prometheus/client_golang/prometheus"
 	"github.com/rs/zerolog"
 
 	"github.com/limpidchart/lc-api/internal/backend"
 	"github.com/limpidchart/lc-api/internal/config"
+	"github.com/limpidchart/lc-api/internal/metric"
 	"github.com/limpidchart/lc-api/internal/servergrpc"
 	"github.com/limpidchart/lc-api/internal/servergrpchealthcheck"
 	"github.com/limpidchart/lc-api/internal/serverhttp"
@@ -34,6 +36,17 @@ func main() {
 
 	catchSignals(ctx, &log, cancel)
 
+	reqDurHist := metric.RequestDuration()
+
+	if err := prometheus.Register(reqDurHist); err != nil {
+		log.Error().
+			Time(zerolog.TimestampFieldName, time.Now().UTC()).
+			Err(err).
+			Msg("Unable to register request duration metric")
+
+		os.Exit(1)
+	}
+
 	log.Info().
 		Time(zerolog.TimestampFieldName, time.Now().UTC()).
 		Msg("Initializing backend connections")
@@ -52,9 +65,9 @@ func main() {
 
 	defer b.Shutdown()
 
-	startGRPCServer(ctx, cancel, &log, b, cfg.GRPC, errs)
+	startGRPCServer(ctx, cancel, &log, b, cfg.GRPC, reqDurHist, errs)
 	startHCServer(ctx, cancel, &log, b, cfg.GRPCHealthCheck, errs)
-	startHTTPServer(ctx, &log, b, cfg.HTTP, errs)
+	startHTTPServer(ctx, &log, b, cfg.HTTP, reqDurHist, errs)
 
 	select {
 	case <-ctx.Done():
@@ -69,14 +82,14 @@ func main() {
 	}
 }
 
-func startGRPCServer(ctx context.Context, cancel context.CancelFunc, log *zerolog.Logger, b backend.Backend, gRPCCfg config.GRPCConfig, errs chan<- error) {
+func startGRPCServer(ctx context.Context, cancel context.CancelFunc, log *zerolog.Logger, b backend.Backend, gRPCCfg config.GRPCConfig, reqDurHist *prometheus.HistogramVec, errs chan<- error) {
 	log.Info().
 		Time(zerolog.TimestampFieldName, time.Now().UTC()).
 		Str("version", Version).
 		Str("address", gRPCCfg.Address).
 		Msg("Starting gRPC server")
 
-	gRPCServer, err := servergrpc.NewServer(log, b, gRPCCfg)
+	gRPCServer, err := servergrpc.NewServer(log, b, gRPCCfg, reqDurHist)
 	if err != nil {
 		cancel()
 
@@ -121,14 +134,19 @@ func startHCServer(ctx context.Context, cancel context.CancelFunc, log *zerolog.
 	}()
 }
 
-func startHTTPServer(ctx context.Context, log *zerolog.Logger, b backend.Backend, httpCfg config.HTTPConfig, errs chan<- error) {
+func startHTTPServer(ctx context.Context, log *zerolog.Logger, b backend.Backend, httpCfg config.HTTPConfig, reqDurHist *prometheus.HistogramVec, errs chan<- error) {
 	log.Info().
 		Time(zerolog.TimestampFieldName, time.Now().UTC()).
 		Str("version", Version).
 		Str("address", httpCfg.Address).
 		Msg("Starting HTTP server")
 
-	httpServer := serverhttp.NewServer(log, b, httpCfg)
+	httpServer, err := serverhttp.NewServer(log, b, httpCfg, reqDurHist)
+	if err != nil {
+		errs <- err
+
+		return
+	}
 
 	go func() {
 		if err := httpServer.Serve(ctx); err != nil {

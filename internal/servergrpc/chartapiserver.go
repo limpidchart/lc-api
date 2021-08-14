@@ -7,6 +7,7 @@ import (
 	"net"
 	"time"
 
+	"github.com/prometheus/client_golang/prometheus"
 	"github.com/rs/zerolog"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -32,7 +33,7 @@ type Server struct {
 }
 
 // NewServer configures a new Server.
-func NewServer(log *zerolog.Logger, b backend.Backend, gRPCCfg config.GRPCConfig) (*Server, error) {
+func NewServer(log *zerolog.Logger, b backend.Backend, gRPCCfg config.GRPCConfig, reqDurHist *prometheus.HistogramVec) (*Server, error) {
 	listener, err := tcputils.Listener(gRPCCfg.Address)
 	if err != nil {
 		return nil, fmt.Errorf("failed to start lc-api gRPC TCP listener: %w", err)
@@ -43,7 +44,7 @@ func NewServer(log *zerolog.Logger, b backend.Backend, gRPCCfg config.GRPCConfig
 			interceptor.Recover(log),
 			interceptor.BackendCheck(log, b),
 			interceptor.SetRequestID(),
-			interceptor.Logger(log),
+			interceptor.Observer(log, reqDurHist),
 		),
 	)
 
