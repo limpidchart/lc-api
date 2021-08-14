@@ -7,6 +7,8 @@ import (
 	"time"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/rs/zerolog"
 
 	"github.com/limpidchart/lc-api/internal/backend"
@@ -20,6 +22,9 @@ const (
 
 	// GroupCharts represents routing group pattern of the charts API.
 	GroupCharts = "/charts"
+
+	// GroupMetrics represents metrics routing group pattern.
+	GroupMetrics = "/metrics"
 )
 
 // Server implements HTTP server.
@@ -30,7 +35,7 @@ type Server struct {
 }
 
 // NewServer configures a new Server.
-func NewServer(log *zerolog.Logger, b backend.Backend, httpCfg config.HTTPConfig) *Server {
+func NewServer(log *zerolog.Logger, b backend.Backend, httpCfg config.HTTPConfig, reqDurHist *prometheus.HistogramVec) (*Server, error) {
 	return &Server{
 		// nolint: exhaustivestruct
 		httpServer: &http.Server{
@@ -38,11 +43,11 @@ func NewServer(log *zerolog.Logger, b backend.Backend, httpCfg config.HTTPConfig
 			ReadTimeout:  time.Duration(httpCfg.ReadTimeoutSeconds) * time.Second,
 			WriteTimeout: time.Duration(httpCfg.WriteTimeoutSeconds) * time.Second,
 			IdleTimeout:  time.Duration(httpCfg.IdleTimeoutSeconds) * time.Second,
-			Handler:      routes(log, b),
+			Handler:      routes(log, b, reqDurHist),
 		},
 		log:             log,
 		shutdownTimeout: time.Duration(httpCfg.ShutdownTimeoutSeconds) * time.Second,
-	}
+	}, nil
 }
 
 // Serve start HTTP server to serve requests.
@@ -81,12 +86,14 @@ func (s *Server) Serve(ctx context.Context) error {
 	}
 }
 
-func routes(log *zerolog.Logger, b backend.Backend) chi.Router {
+func routes(log *zerolog.Logger, b backend.Backend, reqDurHist *prometheus.HistogramVec) chi.Router {
 	r := chi.NewRouter()
 
 	r.Route(GroupV0, func(r chi.Router) {
-		r.Mount(GroupCharts, chart.Routes(log, b))
+		r.Mount(GroupCharts, chart.Routes(log, b, reqDurHist))
 	})
+
+	r.Mount(GroupMetrics, promhttp.Handler())
 
 	return r
 }

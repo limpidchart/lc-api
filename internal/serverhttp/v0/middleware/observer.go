@@ -2,11 +2,15 @@ package middleware
 
 import (
 	"net/http"
+	"strconv"
 	"strings"
 	"time"
 
 	chimiddleware "github.com/go-chi/chi/v5/middleware"
+	"github.com/prometheus/client_golang/prometheus"
 	"github.com/rs/zerolog"
+
+	"github.com/limpidchart/lc-api/internal/metric"
 )
 
 const (
@@ -32,8 +36,8 @@ const (
 	warnCodesStart = 400
 )
 
-// RequestLogger handles logging of additional information about every request.
-func RequestLogger(log *zerolog.Logger) func(next http.Handler) http.Handler {
+// RequestObserver handles observability (metrics and logging) for every request.
+func RequestObserver(log *zerolog.Logger, reqDurHist *prometheus.HistogramVec) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			ww := chimiddleware.NewWrapResponseWriter(w, r.ProtoMajor)
@@ -45,16 +49,19 @@ func RequestLogger(log *zerolog.Logger) func(next http.Handler) http.Handler {
 			defer func() {
 				statusCode := ww.Status()
 				bytesWritten := ww.BytesWritten()
+				duration := time.Since(startTime)
+
+				reqDurHist.WithLabelValues(metric.ProtocolHTTP, r.Method, r.URL.Path, strconv.Itoa(statusCode)).Observe(duration.Seconds())
 
 				switch {
 				case statusCode >= errCodesStart:
-					logEvent := loggerFields(log.Error(), r, statusCode, bytesWritten, startTime)
+					logEvent := loggerFields(log.Error(), r, statusCode, bytesWritten, startTime, duration)
 					logEvent.Msg("")
 				case statusCode >= warnCodesStart:
-					logEvent := loggerFields(log.Warn(), r, statusCode, bytesWritten, startTime)
+					logEvent := loggerFields(log.Warn(), r, statusCode, bytesWritten, startTime, duration)
 					logEvent.Msg("")
 				default:
-					logEvent := loggerFields(log.Info(), r, statusCode, bytesWritten, startTime)
+					logEvent := loggerFields(log.Info(), r, statusCode, bytesWritten, startTime, duration)
 					logEvent.Msg("")
 				}
 			}()
@@ -62,7 +69,7 @@ func RequestLogger(log *zerolog.Logger) func(next http.Handler) http.Handler {
 	}
 }
 
-func loggerFields(logEvent *zerolog.Event, r *http.Request, code, bytesWritten int, startTime time.Time) *zerolog.Event {
+func loggerFields(logEvent *zerolog.Event, r *http.Request, code, bytesWritten int, startTime time.Time, duration time.Duration) *zerolog.Event {
 	event := logEvent.
 		Time(zerolog.TimestampFieldName, startTime).
 		Str(RequestIDLogKey, GetRequestID(r.Context())).
@@ -73,7 +80,7 @@ func loggerFields(logEvent *zerolog.Event, r *http.Request, code, bytesWritten i
 		Str(methodKey, r.Method).
 		Str(pathKey, r.URL.Path).
 		Int(bytesWrittenKey, bytesWritten).
-		Dur(durationKey, time.Since(startTime))
+		Dur(durationKey, duration)
 
 	chartID := GetChartID(r.Context())
 	if chartID == "" {
