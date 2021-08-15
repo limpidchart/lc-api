@@ -7,7 +7,6 @@ import (
 	"net"
 	"time"
 
-	"github.com/prometheus/client_golang/prometheus"
 	"github.com/rs/zerolog"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -15,6 +14,7 @@ import (
 
 	"github.com/limpidchart/lc-api/internal/backend"
 	"github.com/limpidchart/lc-api/internal/config"
+	"github.com/limpidchart/lc-api/internal/metric"
 	"github.com/limpidchart/lc-api/internal/render/github.com/limpidchart/lc-proto/render/v0"
 	"github.com/limpidchart/lc-api/internal/renderer"
 	"github.com/limpidchart/lc-api/internal/servergrpc/interceptor"
@@ -33,7 +33,7 @@ type Server struct {
 }
 
 // NewServer configures a new Server.
-func NewServer(log *zerolog.Logger, b backend.Backend, gRPCCfg config.GRPCConfig, reqDurHist *prometheus.HistogramVec) (*Server, error) {
+func NewServer(log *zerolog.Logger, b backend.Backend, gRPCCfg config.GRPCConfig, mrec metric.Recorder) (*Server, error) {
 	listener, err := tcputils.Listener(gRPCCfg.Address)
 	if err != nil {
 		return nil, fmt.Errorf("failed to start lc-api gRPC TCP listener: %w", err)
@@ -44,7 +44,7 @@ func NewServer(log *zerolog.Logger, b backend.Backend, gRPCCfg config.GRPCConfig
 			interceptor.Recover(log),
 			interceptor.BackendCheck(log, b),
 			interceptor.SetRequestID(),
-			interceptor.Observer(log, reqDurHist),
+			interceptor.Observer(log, mrec),
 		),
 	)
 

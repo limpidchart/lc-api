@@ -20,6 +20,12 @@ const (
 	httpReadTimeoutSecsDefault     = 5
 	httpWriteTimeoutSecsDefault    = 10
 	httpIdleTimeoutSecsDefault     = 120
+
+	metricsAddressDefault             = "0.0.0.0:54013"
+	metricsShutdownTimeoutSecsDefault = 5
+	metricsReadTimeoutSecsDefault     = 5
+	metricsWriteTimeoutSecsDefault    = 10
+	metricsIdleTimeoutSecsDefault     = 120
 )
 
 const (
@@ -37,6 +43,12 @@ const (
 	httpReadTimeoutSecsEnv     = "LC_API_HTTP_READ_TIMEOUT"
 	httpWriteTimeoutSecsEnv    = "LC_API_HTTP_WRITE_TIMEOUT"
 	httpIdleTimeoutSecsEnv     = "LC_API_HTTP_IDLE_TIMEOUT"
+
+	metricsAddressEnv             = "LC_METRICS_ADDRESS"
+	metricsShutdownTimeoutSecsEnv = "LC_METRICS_SHUTDOWN_TIMEOUT"
+	metricsReadTimeoutSecsEnv     = "LC_METRICS_READ_TIMEOUT"
+	metricsWriteTimeoutSecsEnv    = "LC_METRICS_WRITE_TIMEOUT"
+	metricsIdleTimeoutSecsEnv     = "LC_METRICS_IDLE_TIMEOUT"
 )
 
 // Config represents application config.
@@ -45,6 +57,7 @@ type Config struct {
 	GRPC            GRPCConfig
 	GRPCHealthCheck GRPCHealthCheckConfig
 	HTTP            HTTPConfig
+	Metrics         MetricsConfig
 }
 
 // RendererConfig contains lc-renderer related configuration.
@@ -74,6 +87,15 @@ type HTTPConfig struct {
 	IdleTimeoutSeconds     int
 }
 
+// MetricsConfig contains lc-api metrics related configuration.
+type MetricsConfig struct {
+	Address                string
+	ShutdownTimeoutSeconds int
+	ReadTimeoutSeconds     int
+	WriteTimeoutSeconds    int
+	IdleTimeoutSeconds     int
+}
+
 // NewFromEnv creates a new Config from environment variables.
 func NewFromEnv() Config {
 	return Config{
@@ -95,6 +117,13 @@ func NewFromEnv() Config {
 			ReadTimeoutSeconds:     intValFromEnvOrDefault(httpReadTimeoutSecsEnv, httpReadTimeoutSecsDefault),
 			WriteTimeoutSeconds:    intValFromEnvOrDefault(httpWriteTimeoutSecsEnv, httpWriteTimeoutSecsDefault),
 			IdleTimeoutSeconds:     intValFromEnvOrDefault(httpIdleTimeoutSecsEnv, httpIdleTimeoutSecsDefault),
+		},
+		Metrics: MetricsConfig{
+			Address:                stringValFromEnvOrDefault(metricsAddressEnv, metricsAddressDefault),
+			ShutdownTimeoutSeconds: intValFromEnvOrDefault(metricsShutdownTimeoutSecsEnv, metricsShutdownTimeoutSecsDefault),
+			ReadTimeoutSeconds:     intValFromEnvOrDefault(metricsReadTimeoutSecsEnv, metricsReadTimeoutSecsDefault),
+			WriteTimeoutSeconds:    intValFromEnvOrDefault(metricsWriteTimeoutSecsEnv, metricsWriteTimeoutSecsDefault),
+			IdleTimeoutSeconds:     intValFromEnvOrDefault(metricsIdleTimeoutSecsEnv, metricsIdleTimeoutSecsDefault),
 		},
 	}
 }

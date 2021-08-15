@@ -32,6 +32,11 @@ func TestNewFromEnv(t *testing.T) {
 				setEnvVar(t, "LC_API_HTTP_READ_TIMEOUT", "50"),
 				setEnvVar(t, "LC_API_HTTP_WRITE_TIMEOUT", "100"),
 				setEnvVar(t, "LC_API_HTTP_IDLE_TIMEOUT", "1200"),
+				setEnvVar(t, "LC_METRICS_ADDRESS", "localhost:63013"),
+				setEnvVar(t, "LC_METRICS_SHUTDOWN_TIMEOUT", "21"),
+				setEnvVar(t, "LC_METRICS_READ_TIMEOUT", "51"),
+				setEnvVar(t, "LC_METRICS_WRITE_TIMEOUT", "101"),
+				setEnvVar(t, "LC_METRICS_IDLE_TIMEOUT", "1201"),
 			},
 			[]func() error{
 				unsetEnvVar(t, "LC_API_RENDERER_ADDRESS"),
@@ -45,6 +50,11 @@ func TestNewFromEnv(t *testing.T) {
 				unsetEnvVar(t, "LC_API_HTTP_READ_TIMEOUT"),
 				unsetEnvVar(t, "LC_API_HTTP_WRITE_TIMEOUT"),
 				unsetEnvVar(t, "LC_API_HTTP_IDLE_TIMEOUT"),
+				unsetEnvVar(t, "LC_METRICS_ADDRESS"),
+				unsetEnvVar(t, "LC_METRICS_SHUTDOWN_TIMEOUT"),
+				unsetEnvVar(t, "LC_METRICS_READ_TIMEOUT"),
+				unsetEnvVar(t, "LC_METRICS_WRITE_TIMEOUT"),
+				unsetEnvVar(t, "LC_METRICS_IDLE_TIMEOUT"),
 			},
 			config.Config{
 				Renderer: config.RendererConfig{
@@ -65,6 +75,13 @@ func TestNewFromEnv(t *testing.T) {
 					ReadTimeoutSeconds:     50,
 					WriteTimeoutSeconds:    100,
 					IdleTimeoutSeconds:     1200,
+				},
+				Metrics: config.MetricsConfig{
+					Address:                "localhost:63013",
+					ShutdownTimeoutSeconds: 21,
+					ReadTimeoutSeconds:     51,
+					WriteTimeoutSeconds:    101,
+					IdleTimeoutSeconds:     1201,
 				},
 			},
 		},
@@ -104,6 +121,13 @@ func TestNewFromEnv(t *testing.T) {
 					WriteTimeoutSeconds:    2,
 					IdleTimeoutSeconds:     3,
 				},
+				Metrics: config.MetricsConfig{
+					Address:                "0.0.0.0:54013",
+					ShutdownTimeoutSeconds: 5,
+					ReadTimeoutSeconds:     5,
+					WriteTimeoutSeconds:    10,
+					IdleTimeoutSeconds:     120,
+				},
 			},
 		},
 		{
@@ -131,6 +155,13 @@ func TestNewFromEnv(t *testing.T) {
 				},
 				HTTP: config.HTTPConfig{
 					Address:                "0.0.0.0:54012",
+					ShutdownTimeoutSeconds: 5,
+					ReadTimeoutSeconds:     5,
+					WriteTimeoutSeconds:    10,
+					IdleTimeoutSeconds:     120,
+				},
+				Metrics: config.MetricsConfig{
+					Address:                "0.0.0.0:54013",
 					ShutdownTimeoutSeconds: 5,
 					ReadTimeoutSeconds:     5,
 					WriteTimeoutSeconds:    10,
@@ -170,6 +201,13 @@ func TestNewFromEnv(t *testing.T) {
 					WriteTimeoutSeconds:    10,
 					IdleTimeoutSeconds:     120,
 				},
+				Metrics: config.MetricsConfig{
+					Address:                "0.0.0.0:54013",
+					ShutdownTimeoutSeconds: 5,
+					ReadTimeoutSeconds:     5,
+					WriteTimeoutSeconds:    10,
+					IdleTimeoutSeconds:     120,
+				},
 			},
 		},
 		{
@@ -191,6 +229,13 @@ func TestNewFromEnv(t *testing.T) {
 				},
 				HTTP: config.HTTPConfig{
 					Address:                "0.0.0.0:54012",
+					ShutdownTimeoutSeconds: 5,
+					ReadTimeoutSeconds:     5,
+					WriteTimeoutSeconds:    10,
+					IdleTimeoutSeconds:     120,
+				},
+				Metrics: config.MetricsConfig{
+					Address:                "0.0.0.0:54013",
 					ShutdownTimeoutSeconds: 5,
 					ReadTimeoutSeconds:     5,
 					WriteTimeoutSeconds:    10,
@@ -224,6 +269,13 @@ func TestNewFromEnv(t *testing.T) {
 				HTTP: config.HTTPConfig{
 					Address:                "0.0.0.0:54012",
 					ShutdownTimeoutSeconds: 11,
+					ReadTimeoutSeconds:     5,
+					WriteTimeoutSeconds:    10,
+					IdleTimeoutSeconds:     120,
+				},
+				Metrics: config.MetricsConfig{
+					Address:                "0.0.0.0:54013",
+					ShutdownTimeoutSeconds: 5,
 					ReadTimeoutSeconds:     5,
 					WriteTimeoutSeconds:    10,
 					IdleTimeoutSeconds:     120,

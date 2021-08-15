@@ -7,12 +7,11 @@ import (
 	"time"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/prometheus/client_golang/prometheus"
-	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/rs/zerolog"
 
 	"github.com/limpidchart/lc-api/internal/backend"
 	"github.com/limpidchart/lc-api/internal/config"
+	"github.com/limpidchart/lc-api/internal/metric"
 	"github.com/limpidchart/lc-api/internal/serverhttp/v0/resource/chart"
 )
 
@@ -22,9 +21,6 @@ const (
 
 	// GroupCharts represents routing group pattern of the charts API.
 	GroupCharts = "/charts"
-
-	// GroupMetrics represents metrics routing group pattern.
-	GroupMetrics = "/metrics"
 )
 
 // Server implements HTTP server.
@@ -35,7 +31,7 @@ type Server struct {
 }
 
 // NewServer configures a new Server.
-func NewServer(log *zerolog.Logger, b backend.Backend, httpCfg config.HTTPConfig, reqDurHist *prometheus.HistogramVec) (*Server, error) {
+func NewServer(log *zerolog.Logger, b backend.Backend, httpCfg config.HTTPConfig, mrec metric.Recorder) (*Server, error) {
 	return &Server{
 		// nolint: exhaustivestruct
 		httpServer: &http.Server{
@@ -43,7 +39,7 @@ func NewServer(log *zerolog.Logger, b backend.Backend, httpCfg config.HTTPConfig
 			ReadTimeout:  time.Duration(httpCfg.ReadTimeoutSeconds) * time.Second,
 			WriteTimeout: time.Duration(httpCfg.WriteTimeoutSeconds) * time.Second,
 			IdleTimeout:  time.Duration(httpCfg.IdleTimeoutSeconds) * time.Second,
-			Handler:      routes(log, b, reqDurHist),
+			Handler:      routes(log, b, mrec),
 		},
 		log:             log,
 		shutdownTimeout: time.Duration(httpCfg.ShutdownTimeoutSeconds) * time.Second,
@@ -86,14 +82,12 @@ func (s *Server) Serve(ctx context.Context) error {
 	}
 }
 
-func routes(log *zerolog.Logger, b backend.Backend, reqDurHist *prometheus.HistogramVec) chi.Router {
+func routes(log *zerolog.Logger, b backend.Backend, mrec metric.Recorder) chi.Router {
 	r := chi.NewRouter()
 
 	r.Route(GroupV0, func(r chi.Router) {
-		r.Mount(GroupCharts, chart.Routes(log, b, reqDurHist))
+		r.Mount(GroupCharts, chart.Routes(log, b, mrec))
 	})
-
-	r.Mount(GroupMetrics, promhttp.Handler())
 
 	return r
 }

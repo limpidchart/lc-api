@@ -18,7 +18,6 @@ import (
 
 	"github.com/limpidchart/lc-api/internal/backend"
 	"github.com/limpidchart/lc-api/internal/config"
-	"github.com/limpidchart/lc-api/internal/metric"
 	"github.com/limpidchart/lc-api/internal/serverhttp"
 	"github.com/limpidchart/lc-api/internal/serverhttp/v0/resource/chart"
 	"github.com/limpidchart/lc-api/internal/serverhttp/v0/view"
@@ -131,7 +130,7 @@ func TestCreateChart_VerticalAndLineOK(t *testing.T) {
 	log := zerolog.New(os.Stderr)
 	router := chi.NewRouter()
 	router.Route(serverhttp.GroupV0, func(router chi.Router) {
-		router.Mount(serverhttp.GroupCharts, chart.Routes(&log, b, metric.RequestDuration()))
+		router.Mount(serverhttp.GroupCharts, chart.Routes(&log, b, testutils.NewEmptyRecorder()))
 	})
 
 	w := httptest.NewRecorder()
@@ -201,7 +200,7 @@ func TestCreateChart_ErrTimeout(t *testing.T) {
 	log := zerolog.New(os.Stderr)
 	router := chi.NewRouter()
 	router.Route(serverhttp.GroupV0, func(router chi.Router) {
-		router.Mount(serverhttp.GroupCharts, chart.Routes(&log, b, metric.RequestDuration()))
+		router.Mount(serverhttp.GroupCharts, chart.Routes(&log, b, testutils.NewEmptyRecorder()))
 	})
 
 	w := httptest.NewRecorder()
@@ -253,7 +252,7 @@ func TestCreateChart_ErrNoAxes(t *testing.T) {
 	log := zerolog.New(os.Stderr)
 	router := chi.NewRouter()
 	router.Route(serverhttp.GroupV0, func(router chi.Router) {
-		router.Mount(serverhttp.GroupCharts, chart.Routes(&log, b, metric.RequestDuration()))
+		router.Mount(serverhttp.GroupCharts, chart.Routes(&log, b, testutils.NewEmptyRecorder()))
 	})
 
 	w := httptest.NewRecorder()
@@ -305,7 +304,7 @@ func TestCreateChart_ErrBadJSON(t *testing.T) {
 	log := zerolog.New(os.Stderr)
 	router := chi.NewRouter()
 	router.Route(serverhttp.GroupV0, func(router chi.Router) {
-		router.Mount(serverhttp.GroupCharts, chart.Routes(&log, b, metric.RequestDuration()))
+		router.Mount(serverhttp.GroupCharts, chart.Routes(&log, b, testutils.NewEmptyRecorder()))
 	})
 
 	w := httptest.NewRecorder()

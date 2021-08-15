@@ -6,22 +6,22 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/prometheus/client_golang/prometheus"
 	"github.com/rs/zerolog"
 
 	"github.com/limpidchart/lc-api/internal/backend"
+	"github.com/limpidchart/lc-api/internal/metric"
 	"github.com/limpidchart/lc-api/internal/renderer"
 	"github.com/limpidchart/lc-api/internal/serverhttp/v0/middleware"
 	"github.com/limpidchart/lc-api/internal/serverhttp/v0/view"
 )
 
 // Routes implements HTTP handler for charts requests.
-func Routes(log *zerolog.Logger, b backend.Backend, reqDurHist *prometheus.HistogramVec) http.Handler {
+func Routes(log *zerolog.Logger, b backend.Backend, mrec metric.Recorder) http.Handler {
 	r := chi.NewRouter().
 		With(middleware.Recover(log)).
 		With(middleware.BackendCheck(log, b)).
 		With(middleware.SetRequestID(log)).
-		With(middleware.RequestObserver(log, reqDurHist))
+		With(middleware.RequestObserver(log, mrec))
 
 	// swagger:route POST /charts Charts createChart
 	//
