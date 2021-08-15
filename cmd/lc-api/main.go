@@ -87,7 +87,7 @@ func startGRPCServer(ctx context.Context, cancel context.CancelFunc, log *zerolo
 		Time(zerolog.TimestampFieldName, time.Now().UTC()).
 		Str("version", Version).
 		Str("address", gRPCCfg.Address).
-		Msg("Starting gRPC server")
+		Msg("Starting gRPC API server")
 
 	gRPCServer, err := servergrpc.NewServer(log, b, gRPCCfg, mrec)
 	if err != nil {
@@ -96,7 +96,7 @@ func startGRPCServer(ctx context.Context, cancel context.CancelFunc, log *zerolo
 		log.Error().
 			Time(zerolog.TimestampFieldName, time.Now().UTC()).
 			Err(err).
-			Msg("Unable to configure gRPC server")
+			Msg("Unable to configure gRPC API server")
 
 		os.Exit(1)
 	}
@@ -139,7 +139,7 @@ func startHTTPServer(ctx context.Context, log *zerolog.Logger, b backend.Backend
 		Time(zerolog.TimestampFieldName, time.Now().UTC()).
 		Str("version", Version).
 		Str("address", httpCfg.Address).
-		Msg("Starting HTTP server")
+		Msg("Starting HTTP API server")
 
 	httpServer, err := serverhttp.NewServer(log, b, httpCfg, mrec)
 	if err != nil {
