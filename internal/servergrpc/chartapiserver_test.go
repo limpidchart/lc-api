@@ -14,7 +14,6 @@ import (
 
 	"github.com/limpidchart/lc-api/internal/backend"
 	"github.com/limpidchart/lc-api/internal/config"
-	"github.com/limpidchart/lc-api/internal/metric"
 	"github.com/limpidchart/lc-api/internal/render/github.com/limpidchart/lc-proto/render/v0"
 	"github.com/limpidchart/lc-api/internal/servergrpc"
 	"github.com/limpidchart/lc-api/internal/tcputils"
@@ -57,6 +56,7 @@ func newTestingChartAPIEnv(ctx context.Context, t *testing.T, opts testingChartA
 	}()
 
 	log := zerolog.New(os.Stderr)
+
 	// nolint: exhaustivestruct
 	cfg := config.Config{
 		GRPC: config.GRPCConfig{
@@ -79,12 +79,7 @@ func newTestingChartAPIEnv(ctx context.Context, t *testing.T, opts testingChartA
 		t.Fatalf("unable to configure backend: %s", err)
 	}
 
-	chartAPIServer, err := servergrpc.NewServer(
-		&log,
-		b,
-		cfg.GRPC,
-		metric.RequestDuration(),
-	)
+	chartAPIServer, err := servergrpc.NewServer(&log, b, cfg.GRPC, testutils.NewEmptyRecorder())
 	if err != nil {
 		t.Fatalf("unable to configure testing lc-api server: %s", err)
 	}

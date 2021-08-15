@@ -5,7 +5,6 @@ import (
 	"path"
 	"time"
 
-	"github.com/prometheus/client_golang/prometheus"
 	"github.com/rs/zerolog"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/peer"
@@ -15,6 +14,7 @@ import (
 )
 
 const (
+	protocolKey  = "protocol"
 	requestIDKey = "request_id"
 	ipKey        = "ip"
 	codeKey      = "code"
@@ -26,19 +26,19 @@ const (
 const unknownIP = "unknown"
 
 // Observer handles observability (metrics and logging) for every request.
-func Observer(log *zerolog.Logger, reqDurHist *prometheus.HistogramVec) grpc.UnaryServerInterceptor {
+func Observer(log *zerolog.Logger, mrec metric.Recorder) grpc.UnaryServerInterceptor {
 	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
 		startTime := time.Now().UTC()
 
 		resp, err := handler(ctx, req)
 
-		observe(ctx, log, startTime, info, reqDurHist, err)
+		observe(ctx, log, startTime, info, mrec, err)
 
 		return resp, err
 	}
 }
 
-func observe(ctx context.Context, log *zerolog.Logger, startTime time.Time, info *grpc.UnaryServerInfo, reqDurHist *prometheus.HistogramVec, err error) {
+func observe(ctx context.Context, log *zerolog.Logger, startTime time.Time, info *grpc.UnaryServerInfo, mrec metric.Recorder, err error) {
 	reqID := GetRequestID(ctx)
 	duration := time.Since(startTime)
 
@@ -51,12 +51,13 @@ func observe(ctx context.Context, log *zerolog.Logger, startTime time.Time, info
 		logEvent.Msg("")
 	}
 
-	reqDurHist.WithLabelValues(metric.ProtocolGRPC, path.Base(info.FullMethod), info.FullMethod, status.Convert(err).Code().String()).Observe(duration.Seconds())
+	mrec.RequestDuration().WithLabelValues(metric.ProtocolGRPC, path.Base(info.FullMethod), info.FullMethod, status.Convert(err).Code().String()).Observe(duration.Seconds())
 }
 
 func basicLoggerFields(ctx context.Context, logEvent *zerolog.Event, startTime time.Time, duration time.Duration, reqID, method string, err error) *zerolog.Event {
 	return logEvent.
 		Time(zerolog.TimestampFieldName, startTime).
+		Str(protocolKey, metric.ProtocolGRPC).
 		Str(requestIDKey, reqID).
 		Str(ipKey, peerIP(ctx)).
 		Str(codeKey, status.Convert(err).Code().String()).

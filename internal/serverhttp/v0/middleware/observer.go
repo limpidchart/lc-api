@@ -7,7 +7,6 @@ import (
 	"time"
 
 	chimiddleware "github.com/go-chi/chi/v5/middleware"
-	"github.com/prometheus/client_golang/prometheus"
 	"github.com/rs/zerolog"
 
 	"github.com/limpidchart/lc-api/internal/metric"
@@ -21,6 +20,7 @@ const (
 )
 
 const (
+	protocolKey     = "protocol"
 	ipKey           = "ip"
 	userAgentKey    = "user_agent"
 	refererKey      = refererHeader
@@ -37,7 +37,7 @@ const (
 )
 
 // RequestObserver handles observability (metrics and logging) for every request.
-func RequestObserver(log *zerolog.Logger, reqDurHist *prometheus.HistogramVec) func(next http.Handler) http.Handler {
+func RequestObserver(log *zerolog.Logger, mrec metric.Recorder) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			ww := chimiddleware.NewWrapResponseWriter(w, r.ProtoMajor)
@@ -51,7 +51,7 @@ func RequestObserver(log *zerolog.Logger, reqDurHist *prometheus.HistogramVec) f
 				bytesWritten := ww.BytesWritten()
 				duration := time.Since(startTime)
 
-				reqDurHist.WithLabelValues(metric.ProtocolHTTP, r.Method, r.URL.Path, strconv.Itoa(statusCode)).Observe(duration.Seconds())
+				mrec.RequestDuration().WithLabelValues(metric.ProtocolHTTP, r.Method, r.URL.Path, strconv.Itoa(statusCode)).Observe(duration.Seconds())
 
 				switch {
 				case statusCode >= errCodesStart:
@@ -72,6 +72,7 @@ func RequestObserver(log *zerolog.Logger, reqDurHist *prometheus.HistogramVec) f
 func loggerFields(logEvent *zerolog.Event, r *http.Request, code, bytesWritten int, startTime time.Time, duration time.Duration) *zerolog.Event {
 	event := logEvent.
 		Time(zerolog.TimestampFieldName, startTime).
+		Str(protocolKey, metric.ProtocolHTTP).
 		Str(RequestIDLogKey, GetRequestID(r.Context())).
 		Str(ipKey, peerIP(r)).
 		Str(userAgentKey, r.Header.Get(userAgentHeader)).
