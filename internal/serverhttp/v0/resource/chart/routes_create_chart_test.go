@@ -2,6 +2,7 @@ package chart_test
 
 import (
 	"bytes"
+	"compress/gzip"
 	"context"
 	"encoding/json"
 	"io"
@@ -174,6 +175,84 @@ func TestCreateChart_VerticalAndLineOK(t *testing.T) {
 	assert.Equal(t, chartDataEncoded, respBody.Chart.ChartData)
 }
 
+func TestCreateChart_VerticalAndLineOKGZIP(t *testing.T) {
+	t.Parallel()
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*testingRendererEnvTimeoutSecs)
+	defer cancel()
+
+	chartData := []byte(`<svg>vertical_and_line</svg>`)
+	chartDataEncoded := "PHN2Zz52ZXJ0aWNhbF9hbmRfbGluZTwvc3ZnPg=="
+
+	tre := newTestingRendererEnv(ctx, t, testingRendererEnvOpts{
+		rendererChartData: chartData,
+		rendererFailMsg:   "",
+		rendererLatency:   time.Millisecond * 100,
+	})
+
+	b, err := backend.NewBackend(ctx, config.RendererConfig{
+		Address:               tre.address(),
+		ConnTimeoutSeconds:    testutils.RendererConnTimeoutSecs,
+		RequestTimeoutSeconds: testutils.RendererRequestTimeoutSecs,
+	})
+	if err != nil {
+		t.Fatalf("unable to configure backend: %s", err)
+	}
+
+	log := zerolog.New(os.Stderr)
+	router := chi.NewRouter()
+	router.Route(serverhttp.GroupV0, func(router chi.Router) {
+		router.Mount(serverhttp.GroupCharts, chart.Routes(&log, b, testutils.NewEmptyRecorder()))
+	})
+
+	w := httptest.NewRecorder()
+	url := strings.Join([]string{serverhttp.GroupV0, serverhttp.GroupCharts}, "")
+
+	r, err := http.NewRequestWithContext(context.Background(), http.MethodPost, url, bytes.NewReader(verticalAndLineChartRequest(t)))
+	if err != nil {
+		t.Fatalf("unable to prepare HTTP request: %s", err)
+	}
+
+	r.Header.Set("Accept-Encoding", "gzip")
+
+	router.ServeHTTP(w, r)
+
+	resp := w.Result()
+
+	defer resp.Body.Close()
+
+	assert.Equal(t, http.StatusCreated, resp.StatusCode)
+	assert.Equal(t, "application/json", resp.Header.Get("Content-Type"))
+	assert.Equal(t, "gzip", resp.Header.Get("Content-Encoding"))
+	assert.Empty(t, resp.Header.Get("Content-Length"))
+
+	type respChart struct {
+		Chart *view.ChartReply `json:"chart"`
+	}
+
+	// nolint: exhaustivestruct
+	respBody := respChart{}
+
+	respReader, err := gzip.NewReader(resp.Body)
+	if err != nil {
+		t.Fatalf("unable to create new GZIP reader: %s", err)
+	}
+
+	defer respReader.Close()
+
+	if err := json.NewDecoder(respReader).Decode(&respBody); err != nil {
+		t.Fatalf("unable to unmarshal the response body: %s", err)
+	}
+
+	assert.NotEmpty(t, respBody.Chart.RequestID)
+	assert.NotEmpty(t, respBody.Chart.ChartID)
+	assert.NotEmpty(t, respBody.Chart.CreatedAt)
+	assert.NotEmpty(t, respBody.Chart.DeletedAt)
+	assert.Equal(t, respBody.Chart.CreatedAt, respBody.Chart.DeletedAt) // equal until the storage backend is implemented
+	assert.Equal(t, view.ChartStatusCreated.String(), respBody.Chart.ChartStatus)
+	assert.Equal(t, chartDataEncoded, respBody.Chart.ChartData)
+}
+
 func TestCreateChart_ErrTimeout(t *testing.T) {
 	t.Parallel()
 
@@ -223,6 +302,7 @@ func TestCreateChart_ErrTimeout(t *testing.T) {
 	resp.Body.Close()
 
 	assert.Equal(t, http.StatusRequestTimeout, resp.StatusCode)
+	assert.Equal(t, "application/json", resp.Header.Get("Content-Type"))
 	assert.Equal(t, `{"error":{"message":"Renderer request timed-out"}}`+"\n", string(body))
 }
 
@@ -275,6 +355,7 @@ func TestCreateChart_ErrNoAxes(t *testing.T) {
 	resp.Body.Close()
 
 	assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
+	assert.Equal(t, "application/json", resp.Header.Get("Content-Type"))
 	assert.Equal(t, `{"error":{"message":"Unable to render a chart: unable to validate chart axes: chart axes are not specified"}}`+"\n", string(body))
 }
 
@@ -327,5 +408,6 @@ func TestCreateChart_ErrBadJSON(t *testing.T) {
 	resp.Body.Close()
 
 	assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
+	assert.Equal(t, "application/json", resp.Header.Get("Content-Type"))
 	assert.Equal(t, `{"error":{"message":"Unable to decode create chart JSON: unexpected EOF"}}`+"\n", string(body))
 }

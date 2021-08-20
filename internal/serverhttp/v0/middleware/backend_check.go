@@ -16,8 +16,7 @@ func BackendCheck(log *zerolog.Logger, b backend.Backend) func(next http.Handler
 			if !b.IsHealthy() {
 				log.Error().Msg("Backend connections are not healthy")
 
-				w.WriteHeader(http.StatusServiceUnavailable)
-				MarshalJSON(w, view.NewError(http.StatusText(http.StatusServiceUnavailable)))
+				MarshalJSON(w, http.StatusServiceUnavailable, view.NewError(http.StatusText(http.StatusServiceUnavailable)))
 
 				return
 			}

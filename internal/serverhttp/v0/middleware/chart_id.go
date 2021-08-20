@@ -24,8 +24,7 @@ func RequireChartID(log *zerolog.Logger) func(next http.Handler) http.Handler {
 
 				log.Warn().Msg(msg)
 
-				w.WriteHeader(http.StatusBadRequest)
-				MarshalJSON(w, view.NewError(msg))
+				MarshalJSON(w, http.StatusBadRequest, view.NewError(msg))
 
 				return
 			}

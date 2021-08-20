@@ -1,11 +1,13 @@
 package chart
 
 import (
+	"compress/flate"
 	"errors"
 	"fmt"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
+	chimiddleware "github.com/go-chi/chi/v5/middleware"
 	"github.com/rs/zerolog"
 
 	"github.com/limpidchart/lc-api/internal/backend"
@@ -15,10 +17,13 @@ import (
 	"github.com/limpidchart/lc-api/internal/serverhttp/v0/view"
 )
 
+const applicationJSONContentType = "application/json"
+
 // Routes implements HTTP handler for charts requests.
 func Routes(log *zerolog.Logger, b backend.Backend, mrec metric.Recorder) http.Handler {
 	r := chi.NewRouter().
 		With(middleware.Recover(log)).
+		With(chimiddleware.Compress(flate.BestCompression, applicationJSONContentType)).
 		With(middleware.BackendCheck(log, b)).
 		With(middleware.SetRequestID(log)).
 		With(middleware.RequestObserver(log, mrec))
@@ -95,21 +100,18 @@ func createChartHandler(log *zerolog.Logger, b backend.Backend) func(w http.Resp
 
 		switch {
 		case err == nil:
-			w.WriteHeader(http.StatusCreated)
-			middleware.MarshalJSON(w, NewCreatedChartFromReply(res))
+			middleware.MarshalJSON(w, http.StatusCreated, NewCreatedChartFromReply(res))
 		case errors.Is(err, renderer.ErrGenerateChartIDFailed):
 			log.Error().Err(err).Msg(fmt.Sprintf("unable to generate a random UUID for %s", view.ParamChartID))
 			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		case errors.Is(err, renderer.ErrCreateChartRequestCancelled):
 			msg := "Renderer request timed-out"
 			log.Warn().Msg(msg)
-			w.WriteHeader(http.StatusRequestTimeout)
-			middleware.MarshalJSON(w, view.NewError(msg))
+			middleware.MarshalJSON(w, http.StatusRequestTimeout, view.NewError(msg))
 		default:
 			msg := fmt.Sprintf("Unable to render a chart: %s", err.Error())
 			log.Warn().Msg(msg)
-			w.WriteHeader(http.StatusBadRequest)
-			middleware.MarshalJSON(w, view.NewError(msg))
+			middleware.MarshalJSON(w, http.StatusBadRequest, view.NewError(msg))
 		}
 	}
 }
@@ -128,15 +130,13 @@ func getChartHandler(log *zerolog.Logger) func(w http.ResponseWriter, r *http.Re
 		}
 
 		// We return 404 until storage backend is implemented.
-		w.WriteHeader(http.StatusNotFound)
-		middleware.MarshalJSON(w, view.NewNotFoundError("chart", chartID))
+		middleware.MarshalJSON(w, http.StatusNotFound, view.NewNotFoundError("chart", chartID))
 	}
 }
 
 func listChartsHandler() func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// We return error until auth is implemented.
-		w.WriteHeader(http.StatusNotImplemented)
-		middleware.MarshalJSON(w, view.NewError("List of charts handler is not implemented yet"))
+		middleware.MarshalJSON(w, http.StatusNotImplemented, view.NewError("List of charts handler is not implemented yet"))
 	}
 }

@@ -47,5 +47,6 @@ func TestListCharts_Unimplemented(t *testing.T) {
 	resp.Body.Close()
 
 	assert.Equal(t, http.StatusNotImplemented, resp.StatusCode)
+	assert.Equal(t, "application/json", resp.Header.Get("Content-Type"))
 	assert.Equal(t, `{"error":{"message":"List of charts handler is not implemented yet"}}`+"\n", string(body))
 }

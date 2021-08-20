@@ -48,6 +48,7 @@ func TestGetChart_NotFound(t *testing.T) {
 	resp.Body.Close()
 
 	assert.Equal(t, http.StatusNotFound, resp.StatusCode)
+	assert.Equal(t, "application/json", resp.Header.Get("Content-Type"))
 	assert.Equal(t, fmt.Sprintf(`{"error":{"id":"%s","message":"chart not found"}}`+"\n", chartID), string(body))
 }
 
@@ -80,5 +81,6 @@ func TestGetChart_BadChartID(t *testing.T) {
 	resp.Body.Close()
 
 	assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
+	assert.Equal(t, "application/json", resp.Header.Get("Content-Type"))
 	assert.Equal(t, `{"error":{"message":"chart_id value is bad: unable to parse mychart as UUID: invalid UUID length: 7"}}`+"\n", string(body))
 }
