@@ -27,16 +27,14 @@ func RequireCreateChartParams(log *zerolog.Logger) func(next http.Handler) http.
 
 				log.Warn().Msg(msg)
 
-				w.WriteHeader(http.StatusBadRequest)
-				MarshalJSON(w, view.NewError(msg))
+				MarshalJSON(w, http.StatusBadRequest, view.NewError(msg))
 
 				return
 			}
 
 			createChartRequest, err := convert.JSONToCreateChartRequest(&createOptsJSON)
 			if err != nil {
-				w.WriteHeader(http.StatusBadRequest)
-				MarshalJSON(w, view.NewError(fmt.Sprintf("Unable to use the provided create chart parameters: %s", err)))
+				MarshalJSON(w, http.StatusBadRequest, view.NewError(fmt.Sprintf("Unable to use the provided create chart parameters: %s", err)))
 
 				return
 			}

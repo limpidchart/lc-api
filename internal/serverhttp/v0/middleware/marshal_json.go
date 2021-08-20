@@ -7,13 +7,15 @@ import (
 
 const (
 	contentTypeHeader = "Content-Type"
-	contentTypeJSON   = "application/json; charset=utf-8"
+	jsonContentType   = "application/json"
 )
 
-// MarshalJSON marshals 'v' to JSON, automatically escaping HTML and setting the Content-Type as application/json.
-// It will call http.Error in case of failures.
-func MarshalJSON(w http.ResponseWriter, v interface{}) {
-	w.Header().Set(contentTypeHeader, contentTypeJSON)
+// MarshalJSON marshals 'v' to JSON, automatically escaping HTML, setting the Content-Type as application/json
+// and writing headers with the provided status code.
+// It calls http.Error in case of failures.
+func MarshalJSON(w http.ResponseWriter, statusCode int, v interface{}) {
+	w.Header().Set(contentTypeHeader, jsonContentType)
+	w.WriteHeader(statusCode)
 
 	enc := json.NewEncoder(w)
 	enc.SetEscapeHTML(true)
