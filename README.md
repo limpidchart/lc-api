@@ -12,6 +12,11 @@ Server implements `ChartAPI` service from `lc-proto` and `Health` service from `
 
 REST API has its swagger spec generated in `./api` directory, and it's available on `0.0.0.0:54012` and that can be configured via `LC_API_HTTP_ADDRESS` environment variable.
 
+### REST API responses compression
+
+You can specify the needed compression algorithm in `Accept-Encoding` header. Currently only gzip and deflate are supported.  
+API will compress its response with the best compression using the specified algorithm.
+
 ## Installation
 
 Application needs a running instance of `lc-renderer` on `dns:///localhost:54020` and that can be configured via `LC_API_RENDERER_ADDRESS` environment variable.  
