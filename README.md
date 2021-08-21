@@ -2,7 +2,59 @@
 
 Limpidchart API service
 
-# Observability
+## gRPC API
+
+Server implements `ChartAPI` service from `lc-proto` and `Health` service from `grpc.health.v1`.  
+`ChartAPI` service is available on `0.0.0.0:54010` and that can be configured via `LC_API_GRPC_ADDRESS` environment variable.
+`Health` service is available on `0.0.0.0:54011` and that can be configured via `LC_API_GRPC_HEALTH_CHECK_ADDRESS` environment variable.
+
+## REST API
+
+REST API has its swagger spec generated in `./api` directory, and it's available on `0.0.0.0:54012` and that can be configured via `LC_API_HTTP_ADDRESS` environment variable.
+
+## Installation
+
+Application needs a running instance of `lc-renderer` on `dns:///localhost:54020` and that can be configured via `LC_API_RENDERER_ADDRESS` environment variable.  
+
+Both of them can be run as containers from the following images:
+
+```
+ghcr.io/limpidchart/lc-api:latest
+ghcr.io/limpidchart/lc-renderer:latest
+```
+
+Latest tag always points to the latest stable release (tagged with `vX.Y.Z` version). If you need a dev version please use `develop` tag.
+
+You can also compile and run limpidchart applications without containers. Check `Dockerfile` for the actual commands used for that.
+
+## Configuration
+
+Application is configured via environment variables. Names of all variables and their default values are:
+
+```
+LC_API_RENDERER_ADDRESS=dns:///localhost:54020
+LC_API_RENDERER_CONN_TIMEOUT=5
+LC_API_RENDERER_REQUEST_TIMEOUT=30
+
+LC_API_GRPC_ADDRESS=0.0.0.0:54010
+LC_API_GRPC_SHUTDOWN_TIMEOUT=5
+
+LC_API_GRPC_HEALTH_CHECK_ADDRESS=0.0.0.0:54011
+
+LC_API_HTTP_ADDRESS=0.0.0.0:54012
+LC_API_HTTP_SHUTDOWN_TIMEOUT=5
+LC_API_HTTP_READ_TIMEOUT=5
+LC_API_HTTP_WRITE_TIMEOUT=10
+LC_API_HTTP_IDLE_TIMEOUT=120
+
+LC_METRICS_ADDRESS=0.0.0.0:54013
+LC_METRICS_SHUTDOWN_TIMEOUT=5
+LC_METRICS_READ_TIMEOUT=5
+LC_METRICS_WRITE_TIMEOUT=10
+LC_METRICS_IDLE_TIMEOUT=120
+```
+
+## Observability
 
 You can scrap [Prometheus](https://prometheus.io) `/metrics` endpoint on the `LC_METRICS_ADDRESS` (`0.0.0.0:54013` by default).  
 Currently there is only a `request_duration_seconds` histogram with the default Prometheus buckets (`.005, .01, .025, .05, .1, .25, .5, 1, 2.5, 5, 10`).  
