@@ -57,8 +57,6 @@ func newTestingChartAPIEnv(ctx context.Context, t *testing.T, opts testingChartA
 	}()
 
 	log := zerolog.New(os.Stderr)
-
-	// nolint: exhaustivestruct
 	cfg := config.Config{
 		GRPC: config.GRPCConfig{
 			Address:                tcputils.LocalhostWithRandomPort,

@@ -51,8 +51,6 @@ func NewTestingChartRendererServer(opts Opts) (*TestingChartRendererServer, erro
 	}
 
 	grpcServer := grpc.NewServer()
-
-	// nolint: exhaustivestruct
 	chartRendererServer := &TestingChartRendererServer{
 		failMsg:    opts.FailMsg,
 		grpcServer: grpcServer,

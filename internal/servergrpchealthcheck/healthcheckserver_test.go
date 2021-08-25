@@ -63,7 +63,6 @@ func TestCheck_OK(t *testing.T) {
 
 	hcClient := grpc_health_v1.NewHealthClient(testingHCEnv.hcServerConn)
 
-	// nolint: exhaustivestruct
 	hcReply, hcErr := hcClient.Check(ctx, &grpc_health_v1.HealthCheckRequest{})
 
 	assert.NoError(t, hcErr)
@@ -80,7 +79,6 @@ func TestCheck_Err(t *testing.T) {
 
 	hcClient := grpc_health_v1.NewHealthClient(testingHCEnv.hcServerConn)
 
-	// nolint: exhaustivestruct
 	hcReply, hcErr := hcClient.Check(ctx, &grpc_health_v1.HealthCheckRequest{})
 
 	assert.NoError(t, hcErr)

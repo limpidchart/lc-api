@@ -11,7 +11,6 @@ type CreateChartRequest struct {
 }
 
 func NewCreateChartRequest() *CreateChartRequest {
-	// nolint: exhaustivestruct
 	return &CreateChartRequest{&render.CreateChartRequest{}}
 }
 
@@ -71,7 +70,6 @@ func (req *CreateChartRequest) SetBadMargins() *CreateChartRequest {
 func (req *CreateChartRequest) SetBandBottomAxis() *CreateChartRequest {
 	axes := req.Axes
 	if axes == nil {
-		// nolint: exhaustivestruct
 		axes = &render.ChartAxes{}
 	}
 
@@ -84,7 +82,6 @@ func (req *CreateChartRequest) SetBandBottomAxis() *CreateChartRequest {
 func (req *CreateChartRequest) SetBottomAxisLabel() *CreateChartRequest {
 	axes := req.Axes
 	if axes == nil {
-		// nolint: exhaustivestruct
 		axes = &render.ChartAxes{}
 	}
 
@@ -97,7 +94,6 @@ func (req *CreateChartRequest) SetBottomAxisLabel() *CreateChartRequest {
 func (req *CreateChartRequest) SetLinearLeftAxis() *CreateChartRequest {
 	axes := req.Axes
 	if axes == nil {
-		// nolint: exhaustivestruct
 		axes = &render.ChartAxes{}
 	}
 
@@ -110,7 +106,6 @@ func (req *CreateChartRequest) SetLinearLeftAxis() *CreateChartRequest {
 func (req *CreateChartRequest) SetLeftAxisLabel() *CreateChartRequest {
 	axes := req.Axes
 	if axes == nil {
-		// nolint: exhaustivestruct
 		axes = &render.ChartAxes{}
 	}
 

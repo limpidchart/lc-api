@@ -32,8 +32,6 @@ func NewServer(log *zerolog.Logger, bCon backend.ConnSupervisor, hcCfg config.GR
 	}
 
 	grpcServer := grpc.NewServer()
-
-	// nolint: exhaustivestruct
 	hcServer := &Server{
 		log:        log,
 		grpcServer: grpcServer,

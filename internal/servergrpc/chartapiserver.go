@@ -47,8 +47,6 @@ func NewServer(log *zerolog.Logger, bCon backend.ConnSupervisor, gRPCCfg config.
 			interceptor.Observer(log, pRec),
 		),
 	)
-
-	// nolint: exhaustivestruct
 	chartAPIServer := &Server{
 		log:                log,
 		grpcServer:         grpcServer,
