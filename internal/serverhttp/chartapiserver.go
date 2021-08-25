@@ -33,7 +33,6 @@ type Server struct {
 // NewServer configures a new Server.
 func NewServer(log *zerolog.Logger, bCon backend.ConnSupervisor, httpCfg config.HTTPConfig, pRec metric.PromRecorder) (*Server, error) {
 	return &Server{
-		// nolint: exhaustivestruct
 		httpServer: &http.Server{
 			Addr:         httpCfg.Address,
 			ReadTimeout:  time.Duration(httpCfg.ReadTimeoutSeconds) * time.Second,

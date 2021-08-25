@@ -7,7 +7,6 @@ type JSONCreateChartRequest struct {
 }
 
 func NewJSONCreateChartRequest() *JSONCreateChartRequest {
-	// nolint: exhaustivestruct
 	return &JSONCreateChartRequest{&view.CreateChartRequest{}}
 }
 
@@ -46,7 +45,6 @@ func (req *JSONCreateChartRequest) SetMargins() *JSONCreateChartRequest {
 func (req *JSONCreateChartRequest) SetBandBottomAxis() *JSONCreateChartRequest {
 	axes := req.Chart.Axes
 	if axes == nil {
-		// nolint: exhaustivestruct
 		axes = &view.ChartAxes{}
 	}
 
@@ -59,7 +57,6 @@ func (req *JSONCreateChartRequest) SetBandBottomAxis() *JSONCreateChartRequest {
 func (req *JSONCreateChartRequest) SetBottomAxisLabel() *JSONCreateChartRequest {
 	axes := req.Chart.Axes
 	if axes == nil {
-		// nolint: exhaustivestruct
 		axes = &view.ChartAxes{}
 	}
 
@@ -72,7 +69,6 @@ func (req *JSONCreateChartRequest) SetBottomAxisLabel() *JSONCreateChartRequest 
 func (req *JSONCreateChartRequest) SetLinearLeftAxis() *JSONCreateChartRequest {
 	axes := req.Chart.Axes
 	if axes == nil {
-		// nolint: exhaustivestruct
 		axes = &view.ChartAxes{}
 	}
 
@@ -85,7 +81,6 @@ func (req *JSONCreateChartRequest) SetLinearLeftAxis() *JSONCreateChartRequest {
 func (req *JSONCreateChartRequest) SetLeftAxisLabel() *JSONCreateChartRequest {
 	axes := req.Chart.Axes
 	if axes == nil {
-		// nolint: exhaustivestruct
 		axes = &view.ChartAxes{}
 	}
 

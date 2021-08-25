@@ -25,7 +25,6 @@ type Server struct {
 // NewServer configures a new Server.
 func NewServer(log *zerolog.Logger, metricCfg config.MetricsConfig, pRec PromRecorder) (*Server, error) {
 	return &Server{
-		// nolint: exhaustivestruct
 		httpServer: &http.Server{
 			Addr:         metricCfg.Address,
 			ReadTimeout:  time.Duration(metricCfg.ReadTimeoutSeconds) * time.Second,

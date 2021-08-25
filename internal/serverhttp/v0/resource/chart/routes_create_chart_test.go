@@ -160,7 +160,6 @@ func TestCreateChart_VerticalAndLineOK(t *testing.T) {
 		Chart *view.ChartReply `json:"chart"`
 	}
 
-	// nolint: exhaustivestruct
 	respBody := respChart{}
 
 	if err = json.Unmarshal(body, &respBody); err != nil {
@@ -231,7 +230,6 @@ func TestCreateChart_VerticalAndLineOKGZIP(t *testing.T) {
 		Chart *view.ChartReply `json:"chart"`
 	}
 
-	// nolint: exhaustivestruct
 	respBody := respChart{}
 
 	respReader, err := gzip.NewReader(resp.Body)

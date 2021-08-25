@@ -190,7 +190,6 @@ func (v *ChartView) SetDefaultColors() *ChartView {
 func (v *ChartView) SetFillAndStrokeColor() *ChartView {
 	colors := v.Colors
 	if colors == nil {
-		// nolint: exhaustivestruct
 		colors = &render.ChartViewColors{}
 	}
 
@@ -212,7 +211,6 @@ func (v *ChartView) SetFillAndStrokeColor() *ChartView {
 func (v *ChartView) SetBadFillRGBColor() *ChartView {
 	colors := v.Colors
 	if colors == nil {
-		// nolint: exhaustivestruct
 		colors = &render.ChartViewColors{}
 	}
 

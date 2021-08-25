@@ -42,7 +42,6 @@ type Recorder struct {
 }
 
 // NewRecorder registers all metrics and returns a new metric recorder.
-// nolint: exhaustivestruct
 func NewRecorder() (*Recorder, error) {
 	registry := prometheus.NewRegistry()
 
@@ -83,7 +82,6 @@ func (r *Recorder) HTTPHandler() http.Handler {
 // NewRequestDuration configures and returns a new request_duration_seconds histogram.
 func NewRequestDuration() *prometheus.HistogramVec {
 	return prometheus.NewHistogramVec(
-		// nolint:exhaustivestruct
 		prometheus.HistogramOpts{
 			Name:    requestDurMetricName,
 			Help:    requestDurMetricHelp,
