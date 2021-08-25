@@ -11,10 +11,10 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/health/grpc_health_v1"
 
+	"github.com/limpidchart/lc-api/internal/backend"
 	"github.com/limpidchart/lc-api/internal/config"
 	"github.com/limpidchart/lc-api/internal/servergrpchealthcheck"
 	"github.com/limpidchart/lc-api/internal/tcputils"
-	"github.com/limpidchart/lc-api/internal/testutils"
 )
 
 const testingHCEnvTimeoutSecs = 5
@@ -27,7 +27,7 @@ func newTestingHC(ctx context.Context, t *testing.T, healthy bool) *testingHCEnv
 	t.Helper()
 
 	log := zerolog.New(os.Stderr)
-	b := testutils.NewEmptyBackend(healthy)
+	b := backend.NewEmptyBackend(healthy)
 	hcCfg := config.GRPCHealthCheckConfig{
 		Address: tcputils.LocalhostWithRandomPort,
 	}

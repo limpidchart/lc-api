@@ -36,7 +36,7 @@ func main() {
 
 	catchSignals(ctx, &log, cancel)
 
-	mrec, err := metric.NewRecorder()
+	rec, err := metric.NewRecorder()
 	if err != nil {
 		log.Error().
 			Time(zerolog.TimestampFieldName, time.Now().UTC()).
@@ -64,10 +64,10 @@ func main() {
 
 	defer b.Shutdown()
 
-	startMetricsServer(ctx, &log, cfg.Metrics, mrec, errs)
-	startGRPCServer(ctx, cancel, &log, b, cfg.GRPC, mrec, errs)
+	startMetricsServer(ctx, &log, cfg.Metrics, rec, errs)
+	startGRPCServer(ctx, cancel, &log, b, cfg.GRPC, rec, errs)
 	startHCServer(ctx, cancel, &log, b, cfg.GRPCHealthCheck, errs)
-	startHTTPServer(ctx, &log, b, cfg.HTTP, mrec, errs)
+	startHTTPServer(ctx, &log, b, cfg.HTTP, rec, errs)
 
 	select {
 	case <-ctx.Done():
@@ -82,14 +82,14 @@ func main() {
 	}
 }
 
-func startGRPCServer(ctx context.Context, cancel context.CancelFunc, log *zerolog.Logger, b backend.Backend, gRPCCfg config.GRPCConfig, mrec metric.Recorder, errs chan<- error) {
+func startGRPCServer(ctx context.Context, cancel context.CancelFunc, log *zerolog.Logger, bCon backend.ConnSupervisor, gRPCCfg config.GRPCConfig, pRec metric.PromRecorder, errs chan<- error) {
 	log.Info().
 		Time(zerolog.TimestampFieldName, time.Now().UTC()).
 		Str("version", Version).
 		Str("address", gRPCCfg.Address).
 		Msg("Starting gRPC API server")
 
-	gRPCServer, err := servergrpc.NewServer(log, b, gRPCCfg, mrec)
+	gRPCServer, err := servergrpc.NewServer(log, bCon, gRPCCfg, pRec)
 	if err != nil {
 		cancel()
 
@@ -108,14 +108,14 @@ func startGRPCServer(ctx context.Context, cancel context.CancelFunc, log *zerolo
 	}()
 }
 
-func startHCServer(ctx context.Context, cancel context.CancelFunc, log *zerolog.Logger, b backend.Backend, hcCfg config.GRPCHealthCheckConfig, errs chan<- error) {
+func startHCServer(ctx context.Context, cancel context.CancelFunc, log *zerolog.Logger, bCon backend.ConnSupervisor, hcCfg config.GRPCHealthCheckConfig, errs chan<- error) {
 	log.Info().
 		Time(zerolog.TimestampFieldName, time.Now().UTC()).
 		Str("version", Version).
 		Str("address", hcCfg.Address).
 		Msg("Starting gRPC health check server")
 
-	hcServer, err := servergrpchealthcheck.NewServer(log, b, hcCfg)
+	hcServer, err := servergrpchealthcheck.NewServer(log, bCon, hcCfg)
 	if err != nil {
 		cancel()
 
@@ -134,14 +134,14 @@ func startHCServer(ctx context.Context, cancel context.CancelFunc, log *zerolog.
 	}()
 }
 
-func startHTTPServer(ctx context.Context, log *zerolog.Logger, b backend.Backend, httpCfg config.HTTPConfig, mrec metric.Recorder, errs chan<- error) {
+func startHTTPServer(ctx context.Context, log *zerolog.Logger, bCon backend.ConnSupervisor, httpCfg config.HTTPConfig, pRec metric.PromRecorder, errs chan<- error) {
 	log.Info().
 		Time(zerolog.TimestampFieldName, time.Now().UTC()).
 		Str("version", Version).
 		Str("address", httpCfg.Address).
 		Msg("Starting HTTP API server")
 
-	httpServer, err := serverhttp.NewServer(log, b, httpCfg, mrec)
+	httpServer, err := serverhttp.NewServer(log, bCon, httpCfg, pRec)
 	if err != nil {
 		errs <- err
 
@@ -155,14 +155,14 @@ func startHTTPServer(ctx context.Context, log *zerolog.Logger, b backend.Backend
 	}()
 }
 
-func startMetricsServer(ctx context.Context, log *zerolog.Logger, metricsCfg config.MetricsConfig, mrec metric.Recorder, errs chan<- error) {
+func startMetricsServer(ctx context.Context, log *zerolog.Logger, metricsCfg config.MetricsConfig, pRec metric.PromRecorder, errs chan<- error) {
 	log.Info().
 		Time(zerolog.TimestampFieldName, time.Now().UTC()).
 		Str("version", Version).
 		Str("address", metricsCfg.Address).
 		Msg("Starting metrics server")
 
-	metricsServer, err := metric.NewServer(log, metricsCfg, mrec)
+	metricsServer, err := metric.NewServer(log, metricsCfg, pRec)
 	if err != nil {
 		errs <- err
 

@@ -26,19 +26,19 @@ const (
 const unknownIP = "unknown"
 
 // Observer handles observability (metrics and logging) for every request.
-func Observer(log *zerolog.Logger, mrec metric.Recorder) grpc.UnaryServerInterceptor {
+func Observer(log *zerolog.Logger, pRec metric.PromRecorder) grpc.UnaryServerInterceptor {
 	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
 		startTime := time.Now().UTC()
 
 		resp, err := handler(ctx, req)
 
-		observe(ctx, log, startTime, info, mrec, err)
+		observe(ctx, log, startTime, info, pRec, err)
 
 		return resp, err
 	}
 }
 
-func observe(ctx context.Context, log *zerolog.Logger, startTime time.Time, info *grpc.UnaryServerInfo, mrec metric.Recorder, err error) {
+func observe(ctx context.Context, log *zerolog.Logger, startTime time.Time, info *grpc.UnaryServerInfo, pRec metric.PromRecorder, err error) {
 	reqID := GetRequestID(ctx)
 	duration := time.Since(startTime)
 
@@ -51,7 +51,7 @@ func observe(ctx context.Context, log *zerolog.Logger, startTime time.Time, info
 		logEvent.Msg("")
 	}
 
-	mrec.RequestDuration().WithLabelValues(metric.ProtocolGRPC, path.Base(info.FullMethod), info.FullMethod, status.Convert(err).Code().String()).Observe(duration.Seconds())
+	pRec.RequestDuration().WithLabelValues(metric.ProtocolGRPC, path.Base(info.FullMethod), info.FullMethod, status.Convert(err).Code().String()).Observe(duration.Seconds())
 }
 
 func basicLoggerFields(ctx context.Context, logEvent *zerolog.Event, startTime time.Time, duration time.Duration, reqID, method string, err error) *zerolog.Event {

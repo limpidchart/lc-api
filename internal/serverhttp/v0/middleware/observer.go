@@ -37,7 +37,7 @@ const (
 )
 
 // RequestObserver handles observability (metrics and logging) for every request.
-func RequestObserver(log *zerolog.Logger, mrec metric.Recorder) func(next http.Handler) http.Handler {
+func RequestObserver(log *zerolog.Logger, pRec metric.PromRecorder) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			ww := chimiddleware.NewWrapResponseWriter(w, r.ProtoMajor)
@@ -51,7 +51,7 @@ func RequestObserver(log *zerolog.Logger, mrec metric.Recorder) func(next http.H
 				bytesWritten := ww.BytesWritten()
 				duration := time.Since(startTime)
 
-				mrec.RequestDuration().WithLabelValues(metric.ProtocolHTTP, r.Method, r.URL.Path, strconv.Itoa(statusCode)).Observe(duration.Seconds())
+				pRec.RequestDuration().WithLabelValues(metric.ProtocolHTTP, r.Method, r.URL.Path, strconv.Itoa(statusCode)).Observe(duration.Seconds())
 
 				switch {
 				case statusCode >= errCodesStart:

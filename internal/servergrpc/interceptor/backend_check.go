@@ -12,9 +12,9 @@ import (
 )
 
 // BackendCheck checks if backend is healthy and returns codes.Unavailable status.Status if it's not.
-func BackendCheck(log *zerolog.Logger, b backend.Backend) grpc.UnaryServerInterceptor {
+func BackendCheck(log *zerolog.Logger, bCon backend.ConnSupervisor) grpc.UnaryServerInterceptor {
 	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
-		if !b.IsHealthy() {
+		if !bCon.IsHealthy() {
 			log.Error().Msg("Backend connections are not healthy")
 
 			return nil, status.Errorf(codes.Unavailable, "Service Unavailable")

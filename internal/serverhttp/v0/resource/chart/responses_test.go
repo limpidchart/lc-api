@@ -20,7 +20,7 @@ func TestNewCreatedChartFromReply(t *testing.T) {
 	reqID := "red_id_1"
 	chartID := "chart_id_1"
 	data := []byte("svg_chart_data_1")
-	ts := time.Date(2021, 07, 22, 16, 58, 56, 0, time.UTC)
+	ts := time.Date(2021, 7, 22, 16, 58, 56, 0, time.UTC)
 
 	expected := &chart.Chart{
 		Body: struct {

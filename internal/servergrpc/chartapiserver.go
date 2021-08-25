@@ -33,7 +33,7 @@ type Server struct {
 }
 
 // NewServer configures a new Server.
-func NewServer(log *zerolog.Logger, b backend.Backend, gRPCCfg config.GRPCConfig, mrec metric.Recorder) (*Server, error) {
+func NewServer(log *zerolog.Logger, bCon backend.ConnSupervisor, gRPCCfg config.GRPCConfig, pRec metric.PromRecorder) (*Server, error) {
 	listener, err := tcputils.Listener(gRPCCfg.Address)
 	if err != nil {
 		return nil, fmt.Errorf("failed to start lc-api gRPC TCP listener: %w", err)
@@ -42,9 +42,9 @@ func NewServer(log *zerolog.Logger, b backend.Backend, gRPCCfg config.GRPCConfig
 	grpcServer := grpc.NewServer(
 		grpc.ChainUnaryInterceptor(
 			interceptor.Recover(log),
-			interceptor.BackendCheck(log, b),
+			interceptor.BackendCheck(log, bCon),
 			interceptor.SetRequestID(),
-			interceptor.Observer(log, mrec),
+			interceptor.Observer(log, pRec),
 		),
 	)
 
@@ -54,8 +54,8 @@ func NewServer(log *zerolog.Logger, b backend.Backend, gRPCCfg config.GRPCConfig
 		grpcServer:         grpcServer,
 		shutdownTimeout:    time.Second * time.Duration(gRPCCfg.ShutdownTimeoutSeconds),
 		listener:           listener,
-		rendererClient:     b.RendererClient(),
-		rendererReqTimeout: b.RendererRequestTimeout(),
+		rendererClient:     bCon.RendererClient(),
+		rendererReqTimeout: bCon.RendererRequestTimeout(),
 	}
 
 	render.RegisterChartAPIServer(grpcServer, chartAPIServer)

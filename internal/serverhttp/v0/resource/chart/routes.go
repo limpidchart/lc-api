@@ -20,13 +20,13 @@ import (
 const applicationJSONContentType = "application/json"
 
 // Routes implements HTTP handler for charts requests.
-func Routes(log *zerolog.Logger, b backend.Backend, mrec metric.Recorder) http.Handler {
+func Routes(log *zerolog.Logger, bCon backend.ConnSupervisor, pRec metric.PromRecorder) http.Handler {
 	r := chi.NewRouter().
 		With(middleware.Recover(log)).
 		With(chimiddleware.Compress(flate.BestCompression, applicationJSONContentType)).
-		With(middleware.BackendCheck(log, b)).
+		With(middleware.BackendCheck(log, bCon)).
 		With(middleware.SetRequestID(log)).
-		With(middleware.RequestObserver(log, mrec))
+		With(middleware.RequestObserver(log, pRec))
 
 	// swagger:route POST /charts Charts createChart
 	//
@@ -42,7 +42,7 @@ func Routes(log *zerolog.Logger, b backend.Backend, mrec metric.Recorder) http.H
 	//   201: chartRepr
 	r.
 		With(middleware.RequireCreateChartParams(log)).
-		Post("/", createChartHandler(log, b))
+		Post("/", createChartHandler(log, bCon))
 
 	// swagger:route GET /charts/{chart_id} Charts getChart
 	//
@@ -77,7 +77,7 @@ func Routes(log *zerolog.Logger, b backend.Backend, mrec metric.Recorder) http.H
 	return r
 }
 
-func createChartHandler(log *zerolog.Logger, b backend.Backend) func(w http.ResponseWriter, r *http.Request) {
+func createChartHandler(log *zerolog.Logger, b backend.ConnSupervisor) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		reqID := middleware.GetRequestID(r.Context())
 		log := log.With().Str(middleware.RequestIDLogKey, reqID).Logger()

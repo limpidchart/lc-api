@@ -31,7 +31,7 @@ type Server struct {
 }
 
 // NewServer configures a new Server.
-func NewServer(log *zerolog.Logger, b backend.Backend, httpCfg config.HTTPConfig, mrec metric.Recorder) (*Server, error) {
+func NewServer(log *zerolog.Logger, bCon backend.ConnSupervisor, httpCfg config.HTTPConfig, pRec metric.PromRecorder) (*Server, error) {
 	return &Server{
 		// nolint: exhaustivestruct
 		httpServer: &http.Server{
@@ -39,7 +39,7 @@ func NewServer(log *zerolog.Logger, b backend.Backend, httpCfg config.HTTPConfig
 			ReadTimeout:  time.Duration(httpCfg.ReadTimeoutSeconds) * time.Second,
 			WriteTimeout: time.Duration(httpCfg.WriteTimeoutSeconds) * time.Second,
 			IdleTimeout:  time.Duration(httpCfg.IdleTimeoutSeconds) * time.Second,
-			Handler:      routes(log, b, mrec),
+			Handler:      routes(log, bCon, pRec),
 		},
 		log:             log,
 		shutdownTimeout: time.Duration(httpCfg.ShutdownTimeoutSeconds) * time.Second,
@@ -82,11 +82,11 @@ func (s *Server) Serve(ctx context.Context) error {
 	}
 }
 
-func routes(log *zerolog.Logger, b backend.Backend, mrec metric.Recorder) chi.Router {
+func routes(log *zerolog.Logger, bCon backend.ConnSupervisor, pRec metric.PromRecorder) chi.Router {
 	r := chi.NewRouter()
 
 	r.Route(GroupV0, func(r chi.Router) {
-		r.Mount(GroupCharts, chart.Routes(log, b, mrec))
+		r.Mount(GroupCharts, chart.Routes(log, bCon, pRec))
 	})
 
 	return r
