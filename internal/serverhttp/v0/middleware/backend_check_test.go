@@ -12,8 +12,8 @@ import (
 	"github.com/rs/zerolog"
 	"github.com/stretchr/testify/assert"
 
+	"github.com/limpidchart/lc-api/internal/backend"
 	"github.com/limpidchart/lc-api/internal/serverhttp/v0/middleware"
-	"github.com/limpidchart/lc-api/internal/testutils"
 )
 
 func TestBackendCheck_OK(t *testing.T) {
@@ -21,7 +21,7 @@ func TestBackendCheck_OK(t *testing.T) {
 
 	logger := zerolog.New(os.Stdout)
 	router := chi.NewRouter()
-	router.Use(middleware.BackendCheck(&logger, testutils.NewEmptyBackend(true)))
+	router.Use(middleware.BackendCheck(&logger, backend.NewEmptyBackend(true)))
 	router.Get("/", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 	})
@@ -47,7 +47,7 @@ func TestBackendCheck_Err(t *testing.T) {
 
 	logger := zerolog.New(os.Stdout)
 	router := chi.NewRouter()
-	router.Use(middleware.BackendCheck(&logger, testutils.NewEmptyBackend(false)))
+	router.Use(middleware.BackendCheck(&logger, backend.NewEmptyBackend(false)))
 	router.Get("/", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 	})

@@ -1,9 +1,8 @@
-package testutils
+package backend
 
 import (
 	"time"
 
-	"github.com/limpidchart/lc-api/internal/backend"
 	"github.com/limpidchart/lc-api/internal/render/github.com/limpidchart/lc-proto/render/v0"
 )
 
@@ -12,8 +11,8 @@ type EmptyBackend struct {
 	healthy bool
 }
 
-// NewEmptyBackend returns a new TestingBackend.
-func NewEmptyBackend(healthy bool) backend.Backend {
+// NewEmptyBackend returns a new EmptyBackend.
+func NewEmptyBackend(healthy bool) *EmptyBackend {
 	return &EmptyBackend{healthy}
 }
 

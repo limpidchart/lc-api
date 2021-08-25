@@ -21,11 +21,11 @@ type Server struct {
 	log        *zerolog.Logger
 	grpcServer *grpc.Server
 	listener   *net.TCPListener
-	b          backend.Backend
+	bCon       backend.ConnSupervisor
 }
 
 // NewServer configures a new Server.
-func NewServer(log *zerolog.Logger, b backend.Backend, hcCfg config.GRPCHealthCheckConfig) (*Server, error) {
+func NewServer(log *zerolog.Logger, bCon backend.ConnSupervisor, hcCfg config.GRPCHealthCheckConfig) (*Server, error) {
 	listener, err := tcputils.Listener(hcCfg.Address)
 	if err != nil {
 		return nil, fmt.Errorf("failed to start lc-api gRPC health check listener: %w", err)
@@ -38,7 +38,7 @@ func NewServer(log *zerolog.Logger, b backend.Backend, hcCfg config.GRPCHealthCh
 		log:        log,
 		grpcServer: grpcServer,
 		listener:   listener,
-		b:          b,
+		bCon:       bCon,
 	}
 
 	grpc_health_v1.RegisterHealthServer(grpcServer, hcServer)
@@ -82,7 +82,7 @@ func (s *Server) Address() string {
 func (s *Server) Check(_ context.Context, _ *grpc_health_v1.HealthCheckRequest) (*grpc_health_v1.HealthCheckResponse, error) {
 	status := grpc_health_v1.HealthCheckResponse_SERVING
 
-	if !s.b.IsHealthy() {
+	if !s.bCon.IsHealthy() {
 		status = grpc_health_v1.HealthCheckResponse_NOT_SERVING
 	}
 

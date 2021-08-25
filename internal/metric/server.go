@@ -23,7 +23,7 @@ type Server struct {
 }
 
 // NewServer configures a new Server.
-func NewServer(log *zerolog.Logger, metricCfg config.MetricsConfig, mrec Recorder) (*Server, error) {
+func NewServer(log *zerolog.Logger, metricCfg config.MetricsConfig, pRec PromRecorder) (*Server, error) {
 	return &Server{
 		// nolint: exhaustivestruct
 		httpServer: &http.Server{
@@ -31,7 +31,7 @@ func NewServer(log *zerolog.Logger, metricCfg config.MetricsConfig, mrec Recorde
 			ReadTimeout:  time.Duration(metricCfg.ReadTimeoutSeconds) * time.Second,
 			WriteTimeout: time.Duration(metricCfg.WriteTimeoutSeconds) * time.Second,
 			IdleTimeout:  time.Duration(metricCfg.IdleTimeoutSeconds) * time.Second,
-			Handler:      routes(mrec),
+			Handler:      routes(pRec),
 		},
 		log:             log,
 		shutdownTimeout: time.Duration(metricCfg.ShutdownTimeoutSeconds) * time.Second,
@@ -74,10 +74,10 @@ func (s *Server) Serve(ctx context.Context) error {
 	}
 }
 
-func routes(mrec Recorder) http.Handler {
+func routes(pRec PromRecorder) http.Handler {
 	r := chi.NewRouter()
 
-	r.Get(groupMetrics, mrec.HTTPHandler().ServeHTTP)
+	r.Get(groupMetrics, pRec.HTTPHandler().ServeHTTP)
 
 	return r
 }

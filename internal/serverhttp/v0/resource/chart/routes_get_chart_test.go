@@ -13,6 +13,8 @@ import (
 	"github.com/rs/zerolog"
 	"github.com/stretchr/testify/assert"
 
+	"github.com/limpidchart/lc-api/internal/backend"
+	"github.com/limpidchart/lc-api/internal/metric"
 	"github.com/limpidchart/lc-api/internal/serverhttp"
 	"github.com/limpidchart/lc-api/internal/serverhttp/v0/resource/chart"
 	"github.com/limpidchart/lc-api/internal/testutils"
@@ -24,7 +26,7 @@ func TestGetChart_NotFound(t *testing.T) {
 	log := zerolog.New(os.Stderr)
 	router := chi.NewRouter()
 	router.Route(serverhttp.GroupV0, func(router chi.Router) {
-		router.Mount(serverhttp.GroupCharts, chart.Routes(&log, testutils.NewEmptyBackend(true), testutils.NewEmptyRecorder()))
+		router.Mount(serverhttp.GroupCharts, chart.Routes(&log, backend.NewEmptyBackend(true), metric.NewEmptyRecorder()))
 	})
 
 	w := httptest.NewRecorder()
@@ -58,7 +60,7 @@ func TestGetChart_BadChartID(t *testing.T) {
 	log := zerolog.New(os.Stderr)
 	router := chi.NewRouter()
 	router.Route(serverhttp.GroupV0, func(router chi.Router) {
-		router.Mount(serverhttp.GroupCharts, chart.Routes(&log, testutils.NewEmptyBackend(true), testutils.NewEmptyRecorder()))
+		router.Mount(serverhttp.GroupCharts, chart.Routes(&log, backend.NewEmptyBackend(true), metric.NewEmptyRecorder()))
 	})
 
 	w := httptest.NewRecorder()

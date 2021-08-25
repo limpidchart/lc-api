@@ -27,13 +27,15 @@ const (
 	requestDurMetricHelp = "The latency of requests (seconds)."
 )
 
-// Recorder represents application metrics recorder.
-type Recorder interface {
+// PromRecorder represents an entity that records metrics and contains
+// configured HTTP handler that can be used by Prometheus.
+type PromRecorder interface {
 	RequestDuration() *prometheus.HistogramVec
 	HTTPHandler() http.Handler
 }
 
-type appRecorder struct {
+// Recorder represents application metrics recorder.
+type Recorder struct {
 	requestDuration *prometheus.HistogramVec
 	registerer      prometheus.Registerer
 	httpHandler     http.Handler
@@ -41,7 +43,7 @@ type appRecorder struct {
 
 // NewRecorder registers all metrics and returns a new metric recorder.
 // nolint: exhaustivestruct
-func NewRecorder() (Recorder, error) {
+func NewRecorder() (*Recorder, error) {
 	registry := prometheus.NewRegistry()
 
 	// Register basic collectors.
@@ -65,16 +67,16 @@ func NewRecorder() (Recorder, error) {
 		registry, promhttp.HandlerFor(registry, promhttp.HandlerOpts{}),
 	)
 
-	return &appRecorder{requestDuration, registry, httpHandler}, nil
+	return &Recorder{requestDuration, registry, httpHandler}, nil
 }
 
 // RequestDuration returns registered request_duration_seconds metric.
-func (r *appRecorder) RequestDuration() *prometheus.HistogramVec {
+func (r *Recorder) RequestDuration() *prometheus.HistogramVec {
 	return r.requestDuration
 }
 
 // HTTPHandler returns configured HTTP handler.
-func (r *appRecorder) HTTPHandler() http.Handler {
+func (r *Recorder) HTTPHandler() http.Handler {
 	return r.httpHandler
 }
 
