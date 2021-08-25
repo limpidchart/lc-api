@@ -4,22 +4,22 @@ Limpidchart API service
 
 ## gRPC API
 
-Server implements `ChartAPI` service from `lc-proto` and `Health` service from `grpc.health.v1`.  
+Server implements `ChartAPI` service from [lc-proto](https://github.com/limpidchart/lc-proto) and `Health` service from [grpc.health.v1](https://github.com/grpc/grpc/blob/master/src/proto/grpc/health/v1/health.proto).  
 `ChartAPI` service is available on `0.0.0.0:54010` and that can be configured via `LC_API_GRPC_ADDRESS` environment variable.
 `Health` service is available on `0.0.0.0:54011` and that can be configured via `LC_API_GRPC_HEALTH_CHECK_ADDRESS` environment variable.
 
 ## REST API
 
-REST API has its swagger spec generated in `./api` directory, and it's available on `0.0.0.0:54012` and that can be configured via `LC_API_HTTP_ADDRESS` environment variable.
+REST API has its Swagger spec generated in [./api](https://github.com/limpidchart/lc-api/tree/main/api) directory, and it's available on `0.0.0.0:54012` and that can be configured via `LC_API_HTTP_ADDRESS` environment variable.
 
 ### REST API responses compression
 
-You can specify the needed compression algorithm in `Accept-Encoding` header. Currently only gzip and deflate are supported.  
+You can specify the needed compression algorithm in `Accept-Encoding` header. Currently, only gzip and deflate are supported.  
 API will compress its response with the best compression using the specified algorithm.
 
 ## Installation
 
-Application needs a running instance of `lc-renderer` on `dns:///localhost:54020` and that can be configured via `LC_API_RENDERER_ADDRESS` environment variable.  
+Application needs a running instance of [lc-renderer](https://github.com/limpidchart/lc-renderer) on `dns:///localhost:54020` and that can be configured via `LC_API_RENDERER_ADDRESS` environment variable.  
 
 Both of them can be run as containers from the following images:
 
@@ -30,7 +30,7 @@ ghcr.io/limpidchart/lc-renderer:latest
 
 Latest tag always points to the latest stable release (tagged with `vX.Y.Z` version). If you need a dev version please use `develop` tag.
 
-You can also compile and run limpidchart applications without containers. Check `Dockerfile` for the actual commands used for that.
+You can also compile and run limpidchart applications without containers. Check `Dockerfile` for the actual commands used for compilation.
 
 ## Configuration
 
