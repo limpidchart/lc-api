@@ -11,9 +11,9 @@ import (
 	"google.golang.org/grpc/health/grpc_health_v1"
 
 	"github.com/limpidchart/lc-api/internal/backend"
-	"github.com/limpidchart/lc-api/internal/config"
-	"github.com/limpidchart/lc-api/internal/tcputils"
 )
+
+const name = "gRPC healthcheck"
 
 // Server implements gRPC grpc_health_v1.HealthServer.
 type Server struct {
@@ -25,23 +25,18 @@ type Server struct {
 }
 
 // NewServer configures a new Server.
-func NewServer(log *zerolog.Logger, bCon backend.ConnSupervisor, hcCfg config.GRPCHealthCheckConfig) (*Server, error) {
-	listener, err := tcputils.Listener(hcCfg.Address)
-	if err != nil {
-		return nil, fmt.Errorf("failed to start lc-api gRPC health check listener: %w", err)
-	}
-
+func NewServer(log *zerolog.Logger, tcpList *net.TCPListener, bCon backend.ConnSupervisor) *Server {
 	grpcServer := grpc.NewServer()
 	hcServer := &Server{
 		log:        log,
 		grpcServer: grpcServer,
-		listener:   listener,
+		listener:   tcpList,
 		bCon:       bCon,
 	}
 
 	grpc_health_v1.RegisterHealthServer(grpcServer, hcServer)
 
-	return hcServer, nil
+	return hcServer
 }
 
 // Serve starts gRPC health check server to serve requests.
@@ -71,9 +66,14 @@ func (s *Server) Serve(ctx context.Context) error {
 	}
 }
 
-// Address returns listener address.
+// Address returns server address.
 func (s *Server) Address() string {
 	return s.listener.Addr().String()
+}
+
+// Name returns server name.
+func (s *Server) Name() string {
+	return name
 }
 
 // Check implements grpc_health_v1.HealthServer.Check.

@@ -23,6 +23,8 @@ const (
 	GroupCharts = "/charts"
 )
 
+const name = "HTTP API"
+
 // Server implements HTTP server.
 type Server struct {
 	httpServer      *http.Server
@@ -31,7 +33,7 @@ type Server struct {
 }
 
 // NewServer configures a new Server.
-func NewServer(log *zerolog.Logger, bCon backend.ConnSupervisor, httpCfg config.HTTPConfig, pRec metric.PromRecorder) (*Server, error) {
+func NewServer(log *zerolog.Logger, bCon backend.ConnSupervisor, httpCfg config.HTTPConfig, pRec metric.PromRecorder) *Server {
 	return &Server{
 		httpServer: &http.Server{
 			Addr:         httpCfg.Address,
@@ -42,7 +44,7 @@ func NewServer(log *zerolog.Logger, bCon backend.ConnSupervisor, httpCfg config.
 		},
 		log:             log,
 		shutdownTimeout: time.Duration(httpCfg.ShutdownTimeoutSeconds) * time.Second,
-	}, nil
+	}
 }
 
 // Serve start HTTP server to serve requests.
@@ -79,6 +81,16 @@ func (s *Server) Serve(ctx context.Context) error {
 	case err := <-serveErr:
 		return err
 	}
+}
+
+// Address returns server address.
+func (s *Server) Address() string {
+	return s.httpServer.Addr
+}
+
+// Name returns server name.
+func (s *Server) Name() string {
+	return name
 }
 
 func routes(log *zerolog.Logger, bCon backend.ConnSupervisor, pRec metric.PromRecorder) chi.Router {

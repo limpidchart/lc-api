@@ -32,10 +32,12 @@ func newTestingHC(ctx context.Context, t *testing.T, healthy bool) *testingHCEnv
 		Address: tcputils.LocalhostWithRandomPort,
 	}
 
-	hcServer, err := servergrpchc.NewServer(&log, b, hcCfg)
+	tcpList, err := tcputils.Listener(hcCfg.Address)
 	if err != nil {
-		t.Fatalf("unable to configure testing lc-api gRPC health check server: %s", err)
+		t.Fatalf("failed to start lc-api gRPC health check listener: %s", err)
 	}
+
+	hcServer := servergrpchc.NewServer(&log, tcpList, b)
 
 	go func() {
 		if serveErr := hcServer.Serve(ctx); serveErr != nil {

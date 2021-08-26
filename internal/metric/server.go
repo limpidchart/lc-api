@@ -12,6 +12,8 @@ import (
 	"github.com/limpidchart/lc-api/internal/config"
 )
 
+const name = "metric"
+
 // groupMetrics represents metrics routing group pattern.
 const groupMetrics = "/metrics"
 
@@ -23,7 +25,7 @@ type Server struct {
 }
 
 // NewServer configures a new Server.
-func NewServer(log *zerolog.Logger, metricCfg config.MetricsConfig, pRec PromRecorder) (*Server, error) {
+func NewServer(log *zerolog.Logger, metricCfg config.MetricsConfig, pRec PromRecorder) *Server {
 	return &Server{
 		httpServer: &http.Server{
 			Addr:         metricCfg.Address,
@@ -34,7 +36,7 @@ func NewServer(log *zerolog.Logger, metricCfg config.MetricsConfig, pRec PromRec
 		},
 		log:             log,
 		shutdownTimeout: time.Duration(metricCfg.ShutdownTimeoutSeconds) * time.Second,
-	}, nil
+	}
 }
 
 // Serve start HTTP server to serve requests.
@@ -71,6 +73,16 @@ func (s *Server) Serve(ctx context.Context) error {
 	case err := <-serveErr:
 		return err
 	}
+}
+
+// Address returns server address.
+func (s *Server) Address() string {
+	return s.httpServer.Addr
+}
+
+// Name returns server name.
+func (s *Server) Name() string {
+	return name
 }
 
 func routes(pRec PromRecorder) http.Handler {

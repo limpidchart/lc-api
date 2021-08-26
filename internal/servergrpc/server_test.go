@@ -78,10 +78,12 @@ func newTestingChartAPIEnv(ctx context.Context, t *testing.T, opts testingChartA
 		t.Fatalf("unable to configure backend: %s", err)
 	}
 
-	chartAPIServer, err := servergrpc.NewServer(&log, b, cfg.GRPC, metric.NewEmptyRecorder())
+	tcpList, err := tcputils.Listener(cfg.GRPC.Address)
 	if err != nil {
-		t.Fatalf("unable to configure testing lc-api server: %s", err)
+		t.Fatalf("failed to start lc-api gRPC TCP listener: %s", err)
 	}
+
+	chartAPIServer := servergrpc.NewServer(&log, tcpList, b, cfg.GRPC, metric.NewEmptyRecorder())
 
 	go func() {
 		if serveErr := chartAPIServer.Serve(ctx); serveErr != nil {
