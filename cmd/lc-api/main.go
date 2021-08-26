@@ -14,7 +14,7 @@ import (
 	"github.com/limpidchart/lc-api/internal/config"
 	"github.com/limpidchart/lc-api/internal/metric"
 	"github.com/limpidchart/lc-api/internal/servergrpc"
-	"github.com/limpidchart/lc-api/internal/servergrpchealthcheck"
+	"github.com/limpidchart/lc-api/internal/servergrpchc"
 	"github.com/limpidchart/lc-api/internal/serverhttp"
 )
 
@@ -115,7 +115,7 @@ func startHCServer(ctx context.Context, cancel context.CancelFunc, log *zerolog.
 		Str("address", hcCfg.Address).
 		Msg("Starting gRPC health check server")
 
-	hcServer, err := servergrpchealthcheck.NewServer(log, bCon, hcCfg)
+	hcServer, err := servergrpchc.NewServer(log, bCon, hcCfg)
 	if err != nil {
 		cancel()
 

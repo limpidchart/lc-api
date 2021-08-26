@@ -1,4 +1,4 @@
-package servergrpchealthcheck_test
+package servergrpchc_test
 
 import (
 	"context"
@@ -13,7 +13,7 @@ import (
 
 	"github.com/limpidchart/lc-api/internal/backend"
 	"github.com/limpidchart/lc-api/internal/config"
-	"github.com/limpidchart/lc-api/internal/servergrpchealthcheck"
+	"github.com/limpidchart/lc-api/internal/servergrpchc"
 	"github.com/limpidchart/lc-api/internal/tcputils"
 )
 
@@ -32,7 +32,7 @@ func newTestingHC(ctx context.Context, t *testing.T, healthy bool) *testingHCEnv
 		Address: tcputils.LocalhostWithRandomPort,
 	}
 
-	hcServer, err := servergrpchealthcheck.NewServer(&log, b, hcCfg)
+	hcServer, err := servergrpchc.NewServer(&log, b, hcCfg)
 	if err != nil {
 		t.Fatalf("unable to configure testing lc-api gRPC health check server: %s", err)
 	}
