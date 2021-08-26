@@ -3,6 +3,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"os/signal"
 	"syscall"
@@ -16,6 +17,7 @@ import (
 	"github.com/limpidchart/lc-api/internal/servergrpc"
 	"github.com/limpidchart/lc-api/internal/servergrpchc"
 	"github.com/limpidchart/lc-api/internal/serverhttp"
+	"github.com/limpidchart/lc-api/internal/tcputils"
 )
 
 // Version contains lc-api version.
@@ -38,36 +40,37 @@ func main() {
 
 	rec, err := metric.NewRecorder()
 	if err != nil {
-		log.Error().
-			Time(zerolog.TimestampFieldName, time.Now().UTC()).
-			Err(err).
-			Msg("Unable to configure metric recorder")
-
+		log.Error().Time(zerolog.TimestampFieldName, time.Now().UTC()).Err(err).Msg("Unable to configure metric recorder")
 		os.Exit(1)
 	}
 
-	log.Info().
-		Time(zerolog.TimestampFieldName, time.Now().UTC()).
-		Msg("Initializing backend connections")
+	hcListener, err := tcputils.Listener(cfg.GRPCHealthCheck.Address)
+	if err != nil {
+		cancel()
+		log.Error().Time(zerolog.TimestampFieldName, time.Now().UTC()).Err(err).Msg("Unable to create TCP listener for healthcheck server")
+		os.Exit(1)
+	}
+
+	gRPCListener, err := tcputils.Listener(cfg.GRPC.Address)
+	if err != nil {
+		cancel()
+		log.Error().Time(zerolog.TimestampFieldName, time.Now().UTC()).Err(err).Msg("Unable to create TCP listener for gRPC API server")
+		os.Exit(1)
+	}
 
 	b, err := backend.NewBackend(ctx, cfg.Renderer)
 	if err != nil {
 		cancel()
-
-		log.Error().
-			Time(zerolog.TimestampFieldName, time.Now().UTC()).
-			Err(err).
-			Msg("Unable to initialize backend connections")
-
+		log.Error().Time(zerolog.TimestampFieldName, time.Now().UTC()).Err(err).Msg("Unable to create backend connections")
 		os.Exit(1)
 	}
 
 	defer b.Shutdown()
 
-	startMetricsServer(ctx, &log, cfg.Metrics, rec, errs)
-	startGRPCServer(ctx, cancel, &log, b, cfg.GRPC, rec, errs)
-	startHCServer(ctx, cancel, &log, b, cfg.GRPCHealthCheck, errs)
-	startHTTPServer(ctx, &log, b, cfg.HTTP, rec, errs)
+	startServer(ctx, &log, metric.NewServer(&log, cfg.Metrics, rec), errs)
+	startServer(ctx, &log, servergrpc.NewServer(&log, gRPCListener, b, cfg.GRPC, rec), errs)
+	startServer(ctx, &log, serverhttp.NewServer(&log, b, cfg.HTTP, rec), errs)
+	startServer(ctx, &log, servergrpchc.NewServer(&log, hcListener, b), errs)
 
 	select {
 	case <-ctx.Done():
@@ -82,96 +85,22 @@ func main() {
 	}
 }
 
-func startGRPCServer(ctx context.Context, cancel context.CancelFunc, log *zerolog.Logger, bCon backend.ConnSupervisor, gRPCCfg config.GRPCConfig, pRec metric.PromRecorder, errs chan<- error) {
-	log.Info().
-		Time(zerolog.TimestampFieldName, time.Now().UTC()).
-		Str("version", Version).
-		Str("address", gRPCCfg.Address).
-		Msg("Starting gRPC API server")
-
-	gRPCServer, err := servergrpc.NewServer(log, bCon, gRPCCfg, pRec)
-	if err != nil {
-		cancel()
-
-		log.Error().
-			Time(zerolog.TimestampFieldName, time.Now().UTC()).
-			Err(err).
-			Msg("Unable to configure gRPC API server")
-
-		os.Exit(1)
-	}
-
-	go func() {
-		if err := gRPCServer.Serve(ctx); err != nil {
-			errs <- err
-		}
-	}()
+type server interface {
+	Name() string
+	Address() string
+	Serve(ctx context.Context) error
 }
 
-func startHCServer(ctx context.Context, cancel context.CancelFunc, log *zerolog.Logger, bCon backend.ConnSupervisor, hcCfg config.GRPCHealthCheckConfig, errs chan<- error) {
+func startServer(ctx context.Context, log *zerolog.Logger, s server, errs chan<- error) {
 	log.Info().
 		Time(zerolog.TimestampFieldName, time.Now().UTC()).
 		Str("version", Version).
-		Str("address", hcCfg.Address).
-		Msg("Starting gRPC health check server")
-
-	hcServer, err := servergrpchc.NewServer(log, bCon, hcCfg)
-	if err != nil {
-		cancel()
-
-		log.Error().
-			Time(zerolog.TimestampFieldName, time.Now().UTC()).
-			Err(err).
-			Msg("Unable to configure gRPC health check server")
-
-		os.Exit(1)
-	}
+		Str("address", s.Address()).
+		Msg(fmt.Sprintf("Starting %s server", s.Name()))
 
 	go func() {
-		if err := hcServer.Serve(ctx); err != nil {
-			errs <- err
-		}
-	}()
-}
-
-func startHTTPServer(ctx context.Context, log *zerolog.Logger, bCon backend.ConnSupervisor, httpCfg config.HTTPConfig, pRec metric.PromRecorder, errs chan<- error) {
-	log.Info().
-		Time(zerolog.TimestampFieldName, time.Now().UTC()).
-		Str("version", Version).
-		Str("address", httpCfg.Address).
-		Msg("Starting HTTP API server")
-
-	httpServer, err := serverhttp.NewServer(log, bCon, httpCfg, pRec)
-	if err != nil {
-		errs <- err
-
-		return
-	}
-
-	go func() {
-		if err := httpServer.Serve(ctx); err != nil {
-			errs <- err
-		}
-	}()
-}
-
-func startMetricsServer(ctx context.Context, log *zerolog.Logger, metricsCfg config.MetricsConfig, pRec metric.PromRecorder, errs chan<- error) {
-	log.Info().
-		Time(zerolog.TimestampFieldName, time.Now().UTC()).
-		Str("version", Version).
-		Str("address", metricsCfg.Address).
-		Msg("Starting metrics server")
-
-	metricsServer, err := metric.NewServer(log, metricsCfg, pRec)
-	if err != nil {
-		errs <- err
-
-		return
-	}
-
-	go func() {
-		if err := metricsServer.Serve(ctx); err != nil {
-			errs <- err
+		if err := s.Serve(ctx); err != nil {
+			errs <- fmt.Errorf("unable to start %s server: %w", s.Name(), err)
 		}
 	}()
 }

@@ -18,8 +18,9 @@ import (
 	"github.com/limpidchart/lc-api/internal/render/github.com/limpidchart/lc-proto/render/v0"
 	"github.com/limpidchart/lc-api/internal/renderer"
 	"github.com/limpidchart/lc-api/internal/servergrpc/interceptor"
-	"github.com/limpidchart/lc-api/internal/tcputils"
 )
+
+const name = "gRPC API"
 
 // Server implements gRPC render.ChartAPIServer.
 type Server struct {
@@ -33,12 +34,7 @@ type Server struct {
 }
 
 // NewServer configures a new Server.
-func NewServer(log *zerolog.Logger, bCon backend.ConnSupervisor, gRPCCfg config.GRPCConfig, pRec metric.PromRecorder) (*Server, error) {
-	listener, err := tcputils.Listener(gRPCCfg.Address)
-	if err != nil {
-		return nil, fmt.Errorf("failed to start lc-api gRPC TCP listener: %w", err)
-	}
-
+func NewServer(log *zerolog.Logger, tcpList *net.TCPListener, bCon backend.ConnSupervisor, gRPCCfg config.GRPCConfig, pRec metric.PromRecorder) *Server {
 	grpcServer := grpc.NewServer(
 		grpc.ChainUnaryInterceptor(
 			interceptor.Recover(log),
@@ -51,19 +47,14 @@ func NewServer(log *zerolog.Logger, bCon backend.ConnSupervisor, gRPCCfg config.
 		log:                log,
 		grpcServer:         grpcServer,
 		shutdownTimeout:    time.Second * time.Duration(gRPCCfg.ShutdownTimeoutSeconds),
-		listener:           listener,
+		listener:           tcpList,
 		rendererClient:     bCon.RendererClient(),
 		rendererReqTimeout: bCon.RendererRequestTimeout(),
 	}
 
 	render.RegisterChartAPIServer(grpcServer, chartAPIServer)
 
-	return chartAPIServer, nil
-}
-
-// Address returns listener address.
-func (s *Server) Address() string {
-	return s.listener.Addr().String()
+	return chartAPIServer
 }
 
 // Serve starts gRPC server to serve requests.
@@ -114,6 +105,16 @@ func (s *Server) Serve(ctx context.Context) error {
 	case err := <-serveErr:
 		return err
 	}
+}
+
+// Address returns server address.
+func (s *Server) Address() string {
+	return s.listener.Addr().String()
+}
+
+// Name returns server name.
+func (s *Server) Name() string {
+	return name
 }
 
 // CreateChart implements render.ChartAPIServer.CreateChart.
