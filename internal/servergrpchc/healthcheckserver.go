@@ -1,4 +1,4 @@
-package servergrpchealthcheck
+package servergrpchc
 
 import (
 	"context"
